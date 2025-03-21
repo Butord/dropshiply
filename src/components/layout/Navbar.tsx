@@ -53,11 +53,13 @@ export const Navbar = () => {
                 className="pl-9 pr-4 py-2 rounded-full bg-transparent border border-gray-200 dark:border-gray-800 focus-visible:ring-gray-300 w-full"
               />
             </div>
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium flex items-center justify-center text-primary-foreground">
-                3
-              </span>
+            <Button variant="ghost" size="icon" className="relative" asChild>
+              <Link to="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium flex items-center justify-center text-primary-foreground">
+                  3
+                </span>
+              </Link>
             </Button>
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5" />
