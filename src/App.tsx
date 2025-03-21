@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Pages
 import Index from "./pages/Index";
 import Products from "./pages/Products";
+import Categories from "./pages/Categories";
 import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           {/* Frontend Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/categories" element={<Categories />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           
           {/* Admin Routes */}
