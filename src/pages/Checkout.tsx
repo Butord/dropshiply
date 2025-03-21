@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   CreditCard, 
   Truck, 
@@ -14,7 +15,8 @@ import {
   Phone,
   Mail,
   User,
-  CheckCircle
+  CheckCircle,
+  MessageCircle
 } from 'lucide-react';
 import {
   Dialog,
@@ -56,7 +58,8 @@ const Checkout = () => {
     city: '',
     postalCode: '',
     saveInfo: false,
-    paymentMethod: 'card'
+    paymentMethod: 'card',
+    notificationMethod: 'email'
   });
   
   const navigate = useNavigate();
@@ -78,6 +81,13 @@ const Checkout = () => {
     setFormData(prev => ({
       ...prev,
       paymentMethod: method
+    }));
+  };
+
+  const handleNotificationMethodChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      notificationMethod: value
     }));
   };
   
@@ -260,7 +270,7 @@ const Checkout = () => {
                                 <div className="flex items-center gap-3">
                                   <CreditCard className="h-5 w-5" />
                                   <div>
-                                    <p className="font-medium">Карта</p>
+                                    <p className="font-medium">Картка</p>
                                     <p className="text-xs text-muted-foreground">Visa, Mastercard</p>
                                   </div>
                                 </div>
@@ -287,32 +297,42 @@ const Checkout = () => {
                           
                           {formData.paymentMethod === 'card' && (
                             <div className="space-y-4 mt-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="cardNumber">Номер карти</Label>
-                                <Input
-                                  id="cardNumber"
-                                  placeholder="1234 5678 9012 3456"
-                                />
-                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                Ми надішлемо вам платіжні реквізити через обраний метод повідомлення. 
+                                Ваші платіжні дані ніколи не зберігаються на нашому сайті.
+                              </p>
                               
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="expDate">Термін дії</Label>
-                                  <Input
-                                    id="expDate"
-                                    placeholder="MM/РР"
-                                  />
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <Label htmlFor="cvv">CVV</Label>
-                                  <Input
-                                    id="cvv"
-                                    placeholder="123"
-                                    type="password"
-                                    maxLength={3}
-                                  />
-                                </div>
+                              <div className="space-y-3">
+                                <Label>Як отримати реквізити для оплати?</Label>
+                                <RadioGroup 
+                                  value={formData.notificationMethod} 
+                                  onValueChange={handleNotificationMethodChange}
+                                  className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="email" id="email-option" />
+                                    <Label htmlFor="email-option" className="flex items-center gap-1 cursor-pointer">
+                                      <Mail className="h-4 w-4" />
+                                      Email
+                                    </Label>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="viber" id="viber-option" />
+                                    <Label htmlFor="viber-option" className="flex items-center gap-1 cursor-pointer">
+                                      <MessageCircle className="h-4 w-4 text-purple-600" />
+                                      Viber
+                                    </Label>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="telegram" id="telegram-option" />
+                                    <Label htmlFor="telegram-option" className="flex items-center gap-1 cursor-pointer">
+                                      <MessageCircle className="h-4 w-4 text-blue-500" />
+                                      Telegram
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
                               </div>
                             </div>
                           )}
@@ -385,7 +405,13 @@ const Checkout = () => {
           <DialogHeader>
             <DialogTitle className="text-center">Замовлення успішно оформлено!</DialogTitle>
             <DialogDescription className="text-center">
-              Дякуємо за ваше замовлення. Ми надіслали деталі замовлення на вашу електронну пошту.
+              {formData.paymentMethod === 'card' ? 
+                `Дякуємо за ваше замовлення. Ми надіслали деталі оплати на ваш ${
+                  formData.notificationMethod === 'email' ? 'email' : 
+                  formData.notificationMethod === 'viber' ? 'Viber' : 'Telegram'
+                }.` :
+                'Дякуємо за ваше замовлення. Ви зможете оплатити його при отриманні.'
+              }
             </DialogDescription>
           </DialogHeader>
           
