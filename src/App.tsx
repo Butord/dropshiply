@@ -11,6 +11,8 @@ import Products from "./pages/Products";
 import Categories from "./pages/Categories";
 import ProductDetail from "./pages/ProductDetail";
 import NotFound from "./pages/NotFound";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/products" element={<Products />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<Dashboard />} />
