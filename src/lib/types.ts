@@ -65,3 +65,46 @@ export interface User {
   role: 'admin' | 'manager';
   avatar?: string;
 }
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
+  products: {
+    productId: string;
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+  }[];
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  billingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  paymentMethod: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  fulfillmentStatus: 'unfulfilled' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned';
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  discount: number;
+  total: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}

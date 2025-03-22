@@ -18,6 +18,7 @@ import Checkout from "./pages/Checkout";
 import Dashboard from "./pages/admin/Dashboard";
 import XMLImport from "./pages/admin/XMLImport";
 import ProductManagement from "./pages/admin/ProductManagement";
+import OrderManagement from "./pages/admin/OrderManagement";
 import PaymentSettings from "./pages/admin/PaymentSettings";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/xml-import" element={<XMLImport />} />
           <Route path="/admin/products" element={<ProductManagement />} />
+          <Route path="/admin/orders" element={<OrderManagement />} />
           <Route path="/admin/payment-settings" element={<PaymentSettings />} />
           
           {/* Catch-all Route */}
