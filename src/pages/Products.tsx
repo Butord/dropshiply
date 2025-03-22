@@ -22,7 +22,7 @@ import { mockProducts, mockCategories } from '@/lib/mockData';
 const Products = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000]);
   const [sortOption, setSortOption] = useState('featured');
@@ -47,7 +47,7 @@ const Products = () => {
     }
     
     // Apply category filter
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== 'all') {
       results = results.filter(product => product.category === selectedCategory);
     }
     
@@ -70,7 +70,7 @@ const Products = () => {
   
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('');
+    setSelectedCategory('all');
     setPriceRange([0, 3000]);
     setSortOption('featured');
   };
@@ -101,8 +101,8 @@ const Products = () => {
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="all-categories" 
-                      checked={!selectedCategory} 
-                      onCheckedChange={() => setSelectedCategory('')}
+                      checked={selectedCategory === 'all'} 
+                      onCheckedChange={() => setSelectedCategory('all')}
                     />
                     <label 
                       htmlFor="all-categories" 
@@ -118,7 +118,7 @@ const Products = () => {
                         id={`category-${category.id}`} 
                         checked={selectedCategory === category.name}
                         onCheckedChange={() => setSelectedCategory(
-                          selectedCategory === category.name ? '' : category.name
+                          selectedCategory === category.name ? 'all' : category.name
                         )}
                       />
                       <label 

@@ -46,7 +46,7 @@ import { toast } from '@/components/ui/use-toast';
 const ProductManagement = () => {
   const [products, setProducts] = useState(mockProducts);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStock, setSelectedStock] = useState('all');
   const [activeTab, setActiveTab] = useState('all');
   const [sortColumn, setSortColumn] = useState('name');
@@ -63,7 +63,7 @@ const ProductManagement = () => {
     
     // Category filter
     const matchesCategory = 
-      selectedCategory === '' || 
+      selectedCategory === 'all' || 
       product.category === selectedCategory;
     
     // Stock filter
@@ -234,7 +234,7 @@ const ProductManagement = () => {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {mockCategories.map(category => (
                       <SelectItem key={category.id} value={category.name}>
                         {category.name}
