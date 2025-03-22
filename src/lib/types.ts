@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -107,4 +106,23 @@ export interface Order {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  orders: number;
+  totalSpent: number;
+  lastOrderDate: string;
+  createdAt: string;
+  status: 'active' | 'inactive';
 }

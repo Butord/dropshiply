@@ -20,6 +20,8 @@ import XMLImport from "./pages/admin/XMLImport";
 import ProductManagement from "./pages/admin/ProductManagement";
 import OrderManagement from "./pages/admin/OrderManagement";
 import PaymentSettings from "./pages/admin/PaymentSettings";
+import CustomerManagement from "./pages/admin/CustomerManagement";
+import Settings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/admin/products" element={<ProductManagement />} />
           <Route path="/admin/orders" element={<OrderManagement />} />
           <Route path="/admin/payment-settings" element={<PaymentSettings />} />
+          <Route path="/admin/customers" element={<CustomerManagement />} />
+          <Route path="/admin/settings" element={<Settings />} />
           
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
