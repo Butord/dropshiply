@@ -196,7 +196,7 @@ const PaymentSettings = () => {
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Використовуйте наступні змінні у шаблоні: {{'{{'}}name{{'}}'}}, {{'{{'}}orderNumber{{'}}'}}, {{'{{'}}amount{{'}}'}}
+                  Використовуйте наступні змінні у шаблоні: {"{{name}}"}, {"{{orderNumber}}"}, {"{{amount}}"}
                 </p>
               </div>
             </CardContent>
@@ -244,7 +244,7 @@ const PaymentSettings = () => {
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Використовуйте наступні змінні у шаблоні: {{'{{'}}name{{'}}'}}, {{'{{'}}orderNumber{{'}}'}}, {{'{{'}}amount{{'}}'}}
+                  Використовуйте наступні змінні у шаблоні: {"{{name}}"}, {"{{orderNumber}}"}, {"{{amount}}"}
                 </p>
               </div>
             </CardContent>
@@ -292,7 +292,7 @@ const PaymentSettings = () => {
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Використовуйте наступні змінні у шаблоні: {{'{{'}}name{{'}}'}}, {{'{{'}}orderNumber{{'}}'}}, {{'{{'}}amount{{'}}'}}
+                  Використовуйте наступні змінні у шаблоні: {"{{name}}"}, {"{{orderNumber}}"}, {"{{amount}}"}
                 </p>
               </div>
             </CardContent>
