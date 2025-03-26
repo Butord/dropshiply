@@ -33,8 +33,8 @@ const Categories = () => {
       <main className="flex-grow pt-24 pb-16">
         <div className="container px-4 md:px-6">
           <AnimatedSection className="mb-8" animation="fade-up">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Categories</h1>
-            <p className="text-muted-foreground">Browse our product categories to find what you're looking for</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Категорії</h1>
+            <p className="text-muted-foreground">Переглядайте наші категорії товарів, щоб знайти те, що ви шукаєте</p>
           </AnimatedSection>
           
           <AnimatedSection 
@@ -44,7 +44,7 @@ const Categories = () => {
           >
             <div className="flex items-center space-x-2">
               <Tag className="h-5 w-5 text-muted-foreground" />
-              <span className="font-medium">{categoriesWithProductCount.length} Categories</span>
+              <span className="font-medium">{categoriesWithProductCount.length} Категорій</span>
             </div>
             
             <div className="flex space-x-2">
@@ -98,7 +98,7 @@ const Categories = () => {
                           </p>
                         )}
                         <div className="text-sm text-muted-foreground">
-                          {category.productCount} Products
+                          {category.productCount} Товарів
                         </div>
                       </CardContent>
                     </Card>
@@ -138,7 +138,7 @@ const Categories = () => {
                             </p>
                           )}
                           <div className="text-sm text-muted-foreground">
-                            {category.productCount} Products
+                            {category.productCount} Товарів
                           </div>
                         </CardContent>
                       </div>

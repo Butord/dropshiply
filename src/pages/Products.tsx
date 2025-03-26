@@ -84,8 +84,8 @@ const Products = () => {
       <main className="flex-grow pt-24 pb-16">
         <div className="container px-4 md:px-6">
           <AnimatedSection className="mb-8" animation="fade-up">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Products</h1>
-            <p className="text-muted-foreground">Explore our curated selection of high-quality products</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Товари</h1>
+            <p className="text-muted-foreground">Перегляньте наш ретельно відібраний асортимент високоякісних товарів</p>
           </AnimatedSection>
           
           <div className="flex flex-col lg:flex-row gap-8">
@@ -96,7 +96,7 @@ const Products = () => {
               delay={100}
             >
               <div>
-                <h3 className="font-medium mb-3">Categories</h3>
+                <h3 className="font-medium mb-3">Категорії</h3>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox 
@@ -108,7 +108,7 @@ const Products = () => {
                       htmlFor="all-categories" 
                       className="text-sm cursor-pointer"
                     >
-                      All Categories
+                      Всі Категорії
                     </label>
                   </div>
                   
@@ -135,7 +135,7 @@ const Products = () => {
               <Separator />
               
               <div>
-                <h3 className="font-medium mb-3">Price Range</h3>
+                <h3 className="font-medium mb-3">Ціновий діапазон</h3>
                 <Slider
                   value={[priceRange[0], priceRange[1]]}
                   min={0}
@@ -145,8 +145,8 @@ const Products = () => {
                   className="my-6"
                 />
                 <div className="flex items-center justify-between text-sm">
-                  <span>${priceRange[0]}</span>
-                  <span>${priceRange[1]}</span>
+                  <span>₴{priceRange[0]}</span>
+                  <span>₴{priceRange[1]}</span>
                 </div>
               </div>
               
@@ -154,7 +154,7 @@ const Products = () => {
               
               <Button onClick={clearFilters} variant="outline" className="w-full">
                 <X className="h-4 w-4 mr-2" />
-                Clear Filters
+                Очистити фільтри
               </Button>
             </AnimatedSection>
             
@@ -166,7 +166,7 @@ const Products = () => {
                 className="w-full flex items-center justify-center"
               >
                 <Filter className="h-4 w-4 mr-2" />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
+                {showFilters ? 'Сховати фільтри' : 'Показати фільтри'}
               </Button>
             </div>
             
@@ -177,14 +177,14 @@ const Products = () => {
                 animation="fade-up"
               >
                 <div>
-                  <h3 className="font-medium mb-3">Categories</h3>
+                  <h3 className="font-medium mb-3">Категорії</h3>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant={!selectedCategory ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedCategory('')}
                     >
-                      All
+                      Всі
                     </Button>
                     
                     {mockCategories.map((category) => (
@@ -205,7 +205,7 @@ const Products = () => {
                 <Separator />
                 
                 <div>
-                  <h3 className="font-medium mb-3">Price Range</h3>
+                  <h3 className="font-medium mb-3">Ціновий діапазон</h3>
                   <Slider
                     value={[priceRange[0], priceRange[1]]}
                     min={0}
@@ -215,14 +215,14 @@ const Products = () => {
                     className="my-6"
                   />
                   <div className="flex items-center justify-between text-sm">
-                    <span>${priceRange[0]}</span>
-                    <span>${priceRange[1]}</span>
+                    <span>₴{priceRange[0]}</span>
+                    <span>₴{priceRange[1]}</span>
                   </div>
                 </div>
                 
                 <Button onClick={clearFilters} variant="outline" className="w-full">
                   <X className="h-4 w-4 mr-2" />
-                  Clear Filters
+                  Очистити фільтри
                 </Button>
               </AnimatedSection>
             )}
@@ -236,7 +236,7 @@ const Products = () => {
                 <div className="relative w-full sm:max-w-xs">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
-                    placeholder="Search products..."
+                    placeholder="Пошук товарів..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 w-full"
@@ -247,13 +247,13 @@ const Products = () => {
                   <SlidersHorizontal className="h-4 w-4 mr-2 text-muted-foreground hidden sm:block" />
                   <Select value={sortOption} onValueChange={setSortOption}>
                     <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Sort by" />
+                      <SelectValue placeholder="Сортувати за" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="featured">Featured</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                      <SelectItem value="priceLow">Price: Low to High</SelectItem>
-                      <SelectItem value="priceHigh">Price: High to Low</SelectItem>
+                      <SelectItem value="featured">Рекомендовані</SelectItem>
+                      <SelectItem value="newest">Найновіші</SelectItem>
+                      <SelectItem value="priceLow">Ціна: Від нижчої до вищої</SelectItem>
+                      <SelectItem value="priceHigh">Ціна: Від вищої до нижчої</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -273,11 +273,11 @@ const Products = () => {
                   animation="fade-up"
                   delay={300}
                 >
-                  <h3 className="text-xl font-medium mb-2">No products found</h3>
+                  <h3 className="text-xl font-medium mb-2">Товарів не знайдено</h3>
                   <p className="text-muted-foreground mb-6">
-                    Try adjusting your search or filter criteria
+                    Спробуйте змінити параметри пошуку або фільтрації
                   </p>
-                  <Button onClick={clearFilters}>Clear all filters</Button>
+                  <Button onClick={clearFilters}>Очистити всі фільтри</Button>
                 </AnimatedSection>
               )}
             </div>

@@ -32,21 +32,21 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <AnimatedSection className="space-y-6" animation="fade-up">
                 <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-                  Premium Dropshipping Platform
+                  Преміум Дропшипінг Платформа
                 </div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                  Automate Your <br /> 
-                  <span className="text-primary">E-commerce Business</span>
+                  Автоматизуйте Ваш <br /> 
+                  <span className="text-primary">Е-комерц Бізнес</span>
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-md">
-                  Access high-quality products, automate inventory, and scale your business with our advanced dropshipping tools.
+                  Отримайте доступ до якісних товарів, автоматизуйте управління запасами та масштабуйте свій бізнес за допомогою наших передових інструментів для дропшипінгу.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-2">
                   <Button size="lg" className="h-12 px-6">
-                    Get Started
+                    Почати роботу
                   </Button>
                   <Button variant="outline" size="lg" className="h-12 px-6">
-                    Learn More
+                    Дізнатися більше
                   </Button>
                 </div>
               </AnimatedSection>
@@ -78,8 +78,8 @@ const Index = () => {
         <section className="py-16 bg-muted/30">
           <div className="container px-4 md:px-6">
             <AnimatedSection className="text-center max-w-2xl mx-auto mb-12" animation="fade-up">
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Why Choose dropshiply</h2>
-              <p className="text-muted-foreground">Our platform provides everything you need to run a successful dropshipping business</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-4">Чому обрати dropshiply</h2>
+              <p className="text-muted-foreground">Наша платформа надає все необхідне для успішного ведення дропшипінг-бізнесу</p>
             </AnimatedSection>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -87,9 +87,9 @@ const Index = () => {
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Package className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Quality Products</h3>
+                <h3 className="text-xl font-semibold mb-2">Якісні Товари</h3>
                 <p className="text-muted-foreground">
-                  All products on our platform are carefully selected and vetted for quality, ensuring customer satisfaction.
+                  Всі товари на нашій платформі ретельно відібрані та перевірені на якість, забезпечуючи задоволення клієнтів.
                 </p>
               </AnimatedSection>
               
@@ -97,9 +97,9 @@ const Index = () => {
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Truck className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Fast Shipping</h3>
+                <h3 className="text-xl font-semibold mb-2">Швидка Доставка</h3>
                 <p className="text-muted-foreground">
-                  Our global network of suppliers ensures fast shipping times to customers worldwide.
+                  Наша глобальна мережа постачальників забезпечує швидкі терміни доставки клієнтам по всьому світу.
                 </p>
               </AnimatedSection>
               
@@ -107,9 +107,9 @@ const Index = () => {
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <ShieldCheck className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Reliable Platform</h3>
+                <h3 className="text-xl font-semibold mb-2">Надійна Платформа</h3>
                 <p className="text-muted-foreground">
-                  Our automated system keeps your inventory in sync and makes sure orders are processed smoothly.
+                  Наша автоматизована система підтримує ваші запаси в актуальному стані та забезпечує плавну обробку замовлень.
                 </p>
               </AnimatedSection>
             </div>
@@ -121,12 +121,12 @@ const Index = () => {
           <div className="container px-4 md:px-6">
             <div className="flex justify-between items-center mb-8">
               <AnimatedSection animation="fade-up">
-                <h2 className="text-3xl font-bold tracking-tight">Featured Products</h2>
+                <h2 className="text-3xl font-bold tracking-tight">Рекомендовані Товари</h2>
               </AnimatedSection>
               <AnimatedSection animation="fade-up" delay={100}>
                 <Link to="/products">
                   <Button variant="ghost" className="group">
-                    View all
+                    Переглянути всі
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
@@ -147,8 +147,8 @@ const Index = () => {
         <section className="py-16 bg-muted/30">
           <div className="container px-4 md:px-6">
             <AnimatedSection className="text-center max-w-2xl mx-auto mb-12" animation="fade-up">
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Shop by Category</h2>
-              <p className="text-muted-foreground">Explore our wide range of product categories</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-4">Купуйте за Категоріями</h2>
+              <p className="text-muted-foreground">Дослідіть наш широкий асортимент категорій товарів</p>
             </AnimatedSection>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -164,7 +164,7 @@ const Index = () => {
                       <div className="absolute bottom-0 left-0 right-0 p-6">
                         <h3 className="text-xl font-semibold text-white mb-1">{category.name}</h3>
                         <div className="flex items-center text-sm text-white/80 group-hover:text-white transition-colors">
-                          Browse products <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+                          Переглянути товари <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
                         </div>
                       </div>
                     </div>
@@ -186,13 +186,13 @@ const Index = () => {
               <div className="relative z-10 px-6 py-16 md:px-12 md:py-20 lg:py-24 max-w-3xl mx-auto text-center">
                 <AnimatedSection animation="fade-up">
                   <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6">
-                    Ready to Start Your Dropshipping Business?
+                    Готові почати свій дропшипінг-бізнес?
                   </h2>
                   <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-                    Join thousands of successful entrepreneurs who are scaling their businesses with our platform.
+                    Приєднуйтеся до тисяч успішних підприємців, які масштабують свій бізнес за допомогою нашої платформи.
                   </p>
                   <Button size="lg" className="bg-white text-primary hover:bg-white/90 h-12 px-8">
-                    Get Started Today
+                    Почніть сьогодні
                   </Button>
                 </AnimatedSection>
               </div>
