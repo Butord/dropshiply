@@ -60,11 +60,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const foundUser = users.find((u: any) => u.email === email);
       
       if (foundUser && foundUser.password === password) {
-        const userObj = {
+        const userObj: User = {
           id: foundUser.id,
           email: foundUser.email,
           name: foundUser.name,
-          role: foundUser.role || "user",
+          role: foundUser.role === "admin" ? "admin" : "user", // Ensure role is either "admin" or "user"
         };
         setUser(userObj);
         localStorage.setItem("auth_user", JSON.stringify(userObj));
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         name,
         email,
         password, // В реальному додатку пароль повинен бути хешований
-        role: "user",
+        role: "user" as const, // Ensure the role is typed correctly
       };
       
       // Додаємо до списку зареєстрованих користувачів
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem("registered_users", JSON.stringify(users));
       
       // Автоматично авторизуємо нового користувача
-      const userObj = {
+      const userObj: User = {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
