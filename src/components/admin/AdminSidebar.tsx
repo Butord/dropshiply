@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { 
   Settings, 
   Package, 
-  FileText, 
   ShoppingCart,
   Users,
   LogOut,
   LayoutDashboard,
-  Upload
+  Upload,
+  Globe
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";

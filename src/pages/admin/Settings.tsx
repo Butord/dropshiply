@@ -78,11 +78,11 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="store-name">Назва магазину</Label>
-                        <Input id="store-name" defaultValue="Dropshiply Store" />
+                        <Input id="store-name" defaultValue="Dropshiply Ukraine" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="store-url">URL магазину</Label>
-                        <Input id="store-url" defaultValue="https://dropshiply.example.com" />
+                        <Input id="store-url" defaultValue="https://dropshiply.ua" />
                       </div>
                     </div>
                     
@@ -90,7 +90,7 @@ const Settings = () => {
                       <Label htmlFor="store-description">Опис магазину</Label>
                       <Textarea 
                         id="store-description" 
-                        defaultValue="Ми продаємо високоякісні товари за доступними цінами." 
+                        defaultValue="Ми продаємо високоякісні товари за доступними цінами з доставкою по всій Україні." 
                         rows={3}
                       />
                     </div>
@@ -98,11 +98,11 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="support-email">Електронна пошта підтримки</Label>
-                        <Input id="support-email" defaultValue="support@dropshiply.example.com" />
+                        <Input id="support-email" defaultValue="support@dropshiply.ua" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="support-phone">Телефон підтримки</Label>
-                        <Input id="support-phone" defaultValue="+1 (555) 123-4567" />
+                        <Input id="support-phone" defaultValue="+380 (50) 123-4567" />
                       </div>
                     </div>
                   </CardContent>
@@ -121,7 +121,7 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="timezone">Часовий пояс</Label>
-                        <Select defaultValue="utc-8">
+                        <Select defaultValue="utc+2">
                           <SelectTrigger id="timezone">
                             <SelectValue placeholder="Виберіть часовий пояс" />
                           </SelectTrigger>
@@ -140,8 +140,8 @@ const Settings = () => {
                             <SelectItem value="utc-1">UTC-01:00</SelectItem>
                             <SelectItem value="utc-0">UTC±00:00</SelectItem>
                             <SelectItem value="utc+1">UTC+01:00</SelectItem>
-                            <SelectItem value="utc+2">UTC+02:00</SelectItem>
-                            <SelectItem value="utc+3">UTC+03:00</SelectItem>
+                            <SelectItem value="utc+2">UTC+02:00 (Київ, EET)</SelectItem>
+                            <SelectItem value="utc+3">UTC+03:00 (EEST - літній час)</SelectItem>
                             <SelectItem value="utc+4">UTC+04:00</SelectItem>
                             <SelectItem value="utc+5">UTC+05:00</SelectItem>
                             <SelectItem value="utc+5:30">UTC+05:30</SelectItem>
@@ -158,39 +158,39 @@ const Settings = () => {
                       
                       <div className="space-y-2">
                         <Label htmlFor="currency">Валюта</Label>
-                        <Select defaultValue="usd">
+                        <Select defaultValue="uah">
                           <SelectTrigger id="currency">
                             <SelectValue placeholder="Виберіть валюту" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="uah">UAH (₴)</SelectItem>
                             <SelectItem value="usd">USD ($)</SelectItem>
                             <SelectItem value="eur">EUR (€)</SelectItem>
                             <SelectItem value="gbp">GBP (£)</SelectItem>
-                            <SelectItem value="jpy">JPY (¥)</SelectItem>
-                            <SelectItem value="cad">CAD (C$)</SelectItem>
-                            <SelectItem value="aud">AUD (A$)</SelectItem>
-                            <SelectItem value="cny">CNY (¥)</SelectItem>
-                            <SelectItem value="inr">INR (₹)</SelectItem>
+                            <SelectItem value="pln">PLN (zł)</SelectItem>
+                            <SelectItem value="czk">CZK (Kč)</SelectItem>
+                            <SelectItem value="ron">RON (lei)</SelectItem>
+                            <SelectItem value="mdl">MDL (L)</SelectItem>
+                            <SelectItem value="bgn">BGN (лв)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="language">Мова</Label>
-                        <Select defaultValue="en">
+                        <Select defaultValue="uk">
                           <SelectTrigger id="language">
                             <SelectValue placeholder="Виберіть мову" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="uk">Українська</SelectItem>
                             <SelectItem value="en">English</SelectItem>
-                            <SelectItem value="es">Spanish</SelectItem>
-                            <SelectItem value="fr">French</SelectItem>
-                            <SelectItem value="de">German</SelectItem>
-                            <SelectItem value="it">Italian</SelectItem>
-                            <SelectItem value="pt">Portuguese</SelectItem>
-                            <SelectItem value="ru">Russian</SelectItem>
-                            <SelectItem value="zh">Chinese</SelectItem>
-                            <SelectItem value="ja">Japanese</SelectItem>
+                            <SelectItem value="pl">Polski</SelectItem>
+                            <SelectItem value="ru">Русский</SelectItem>
+                            <SelectItem value="de">Deutsch</SelectItem>
+                            <SelectItem value="fr">Français</SelectItem>
+                            <SelectItem value="es">Español</SelectItem>
+                            <SelectItem value="it">Italiano</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -199,29 +199,29 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="date-format">Формат дати</Label>
-                        <Select defaultValue="mm-dd-yyyy">
+                        <Select defaultValue="dd-mm-yyyy">
                           <SelectTrigger id="date-format">
                             <SelectValue placeholder="Виберіть формат дати" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="mm-dd-yyyy">MM/DD/YYYY</SelectItem>
-                            <SelectItem value="dd-mm-yyyy">DD/MM/YYYY</SelectItem>
-                            <SelectItem value="yyyy-mm-dd">YYYY/MM/DD</SelectItem>
+                            <SelectItem value="dd-mm-yyyy">ДД/ММ/РРРР</SelectItem>
+                            <SelectItem value="mm-dd-yyyy">ММ/ДД/РРРР</SelectItem>
+                            <SelectItem value="yyyy-mm-dd">РРРР/ММ/ДД</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="weight-unit">Одиниця ваги</Label>
-                        <Select defaultValue="lb">
+                        <Select defaultValue="kg">
                           <SelectTrigger id="weight-unit">
                             <SelectValue placeholder="Виберіть одиницю ваги" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="lb">Pounds (lb)</SelectItem>
-                            <SelectItem value="oz">Ounces (oz)</SelectItem>
-                            <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                            <SelectItem value="g">Grams (g)</SelectItem>
+                            <SelectItem value="kg">Кілограми (кг)</SelectItem>
+                            <SelectItem value="g">Грами (г)</SelectItem>
+                            <SelectItem value="lb">Фунти (lb)</SelectItem>
+                            <SelectItem value="oz">Унції (oz)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -262,11 +262,56 @@ const Settings = () => {
                           <CreditCard className="h-5 w-5" />
                         </div>
                         <div>
+                          <p className="text-sm font-medium">Приват24</p>
+                          <p className="text-sm text-muted-foreground">Приймайте платежі через Приват24</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked id="privat24" />
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Monobank</p>
+                          <p className="text-sm text-muted-foreground">Приймайте платежі через Monobank</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked id="monobank" />
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Готівка при отриманні</p>
+                          <p className="text-sm text-muted-foreground">Приймайте оплату готів��ою при доставці</p>
+                        </div>
+                      </div>
+                      <Switch defaultChecked id="cash-on-delivery" />
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                          <CreditCard className="h-5 w-5" />
+                        </div>
+                        <div>
                           <p className="text-sm font-medium">PayPal</p>
                           <p className="text-sm text-muted-foreground">Приймайте платежі через PayPal</p>
                         </div>
                       </div>
-                      <Switch defaultChecked id="paypal" />
+                      <Switch id="paypal" />
                     </div>
                     
                     <Separator />
@@ -314,26 +359,26 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="currency-format">Формат валюти</Label>
-                        <Select defaultValue="symbol-before">
+                        <Select defaultValue="symbol-after">
                           <SelectTrigger id="currency-format">
                             <SelectValue placeholder="Виберіть формат валюти" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="symbol-before">$100.00</SelectItem>
-                            <SelectItem value="symbol-after">100.00$</SelectItem>
+                            <SelectItem value="symbol-before">₴100.00</SelectItem>
+                            <SelectItem value="symbol-after">100.00₴</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="decimal-separator">Десятковий роздільник</Label>
-                        <Select defaultValue="dot">
+                        <Select defaultValue="comma">
                           <SelectTrigger id="decimal-separator">
                             <SelectValue placeholder="Виберіть десятковий роздільник" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="dot">Dot (100.00)</SelectItem>
-                            <SelectItem value="comma">Comma (100,00)</SelectItem>
+                            <SelectItem value="dot">Крапка (100.00)</SelectItem>
+                            <SelectItem value="comma">Кома (100,00)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -342,15 +387,15 @@ const Settings = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="thousand-separator">Роздільник тисяч</Label>
-                        <Select defaultValue="comma">
+                        <Select defaultValue="space">
                           <SelectTrigger id="thousand-separator">
                             <SelectValue placeholder="Виберіть роздільник тисяч" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="comma">Comma (1,000.00)</SelectItem>
-                            <SelectItem value="dot">Dot (1.000,00)</SelectItem>
-                            <SelectItem value="space">Space (1 000.00)</SelectItem>
-                            <SelectItem value="none">None (1000.00)</SelectItem>
+                            <SelectItem value="comma">Кома (1,000.00)</SelectItem>
+                            <SelectItem value="dot">Крапка (1.000,00)</SelectItem>
+                            <SelectItem value="space">Пробіл (1 000,00)</SelectItem>
+                            <SelectItem value="none">Немає (1000,00)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -363,9 +408,9 @@ const Settings = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="0">0 (100)</SelectItem>
-                            <SelectItem value="1">1 (100.0)</SelectItem>
-                            <SelectItem value="2">2 (100.00)</SelectItem>
-                            <SelectItem value="3">3 (100.000)</SelectItem>
+                            <SelectItem value="1">1 (100,0)</SelectItem>
+                            <SelectItem value="2">2 (100,00)</SelectItem>
+                            <SelectItem value="3">3 (100,000)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
