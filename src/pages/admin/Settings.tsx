@@ -1,8 +1,5 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  Settings as SettingsIcon, 
   Globe, 
   CreditCard, 
   Bell, 
@@ -10,7 +7,6 @@ import {
   Save,
   FileText,
   Database,
-  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,10 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import AnimatedSection from '@/components/ui/AnimatedSection';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 
 const Settings = () => {
   const { toast } = useToast();
@@ -37,51 +33,24 @@ const Settings = () => {
   
   const handleSaveSettings = () => {
     toast({
-      title: "Settings Saved",
-      description: "Your settings have been successfully updated.",
+      title: "Налаштування збережено",
+      description: "Ваші налаштування були успішно оновлені.",
     });
   };
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar */}
-      <div className="w-64 border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
-          <Link to="/" className="text-xl font-semibold tracking-tight">
-            dropshiply
-          </Link>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <NavItem href="/admin" icon={<SettingsIcon className="h-4 w-4" />} label="Dashboard" />
-          <NavItem href="/admin/products" icon={<SettingsIcon className="h-4 w-4" />} label="Products" />
-          <NavItem href="/admin/xml-import" icon={<SettingsIcon className="h-4 w-4" />} label="XML Import" />
-          <NavItem href="/admin/orders" icon={<SettingsIcon className="h-4 w-4" />} label="Orders" />
-          <NavItem href="/admin/customers" icon={<SettingsIcon className="h-4 w-4" />} label="Customers" />
-          <NavItem href="/admin/settings" icon={<SettingsIcon className="h-4 w-4" />} label="Settings" active />
-        </nav>
-        
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center">
-            <Avatar className="h-8 w-8 mr-2">
-              <AvatarFallback>A</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="text-sm font-medium">Admin User</div>
-              <div className="text-xs text-muted-foreground">admin@example.com</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdminSidebar activePage="settings" />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 border-b border-border flex items-center px-6">
-          <h1 className="text-xl font-semibold">Settings</h1>
+          <h1 className="text-xl font-semibold">Налаштування</h1>
           <div className="ml-auto">
             <Button onClick={handleSaveSettings}>
               <Save className="h-4 w-4 mr-2" />
-              Save Changes
+              Зберегти зміни
             </Button>
           </div>
         </header>
@@ -89,10 +58,10 @@ const Settings = () => {
         <main className="flex-1 overflow-y-auto p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="payment">Payment</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsTrigger value="general">Загальні</TabsTrigger>
+              <TabsTrigger value="payment">Оплата</TabsTrigger>
+              <TabsTrigger value="notifications">Сповіщення</TabsTrigger>
+              <TabsTrigger value="security">Безпека</TabsTrigger>
               <TabsTrigger value="api">API</TabsTrigger>
             </TabsList>
             
@@ -100,39 +69,39 @@ const Settings = () => {
               <AnimatedSection animation="fade-up">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Store Information</CardTitle>
+                    <CardTitle>Інформація про магазин</CardTitle>
                     <CardDescription>
-                      Basic information about your store
+                      Основна інформація про ваш магазин
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="store-name">Store Name</Label>
+                        <Label htmlFor="store-name">Назва магазину</Label>
                         <Input id="store-name" defaultValue="Dropshiply Store" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="store-url">Store URL</Label>
+                        <Label htmlFor="store-url">URL магазину</Label>
                         <Input id="store-url" defaultValue="https://dropshiply.example.com" />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="store-description">Store Description</Label>
+                      <Label htmlFor="store-description">Опис магазину</Label>
                       <Textarea 
                         id="store-description" 
-                        defaultValue="We sell high-quality products at affordable prices." 
+                        defaultValue="Ми продаємо високоякісні товари за доступними цінами." 
                         rows={3}
                       />
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="support-email">Support Email</Label>
+                        <Label htmlFor="support-email">Електронна пошта підтримки</Label>
                         <Input id="support-email" defaultValue="support@dropshiply.example.com" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="support-phone">Support Phone</Label>
+                        <Label htmlFor="support-phone">Телефон підтримки</Label>
                         <Input id="support-phone" defaultValue="+1 (555) 123-4567" />
                       </div>
                     </div>
@@ -143,18 +112,18 @@ const Settings = () => {
               <AnimatedSection animation="fade-up" delay={100}>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Regional Settings</CardTitle>
+                    <CardTitle>Регіональні налаштування</CardTitle>
                     <CardDescription>
-                      Configure regional settings for your store
+                      Налаштуйте регіональні параметри для вашого магазину
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="timezone">Timezone</Label>
+                        <Label htmlFor="timezone">Часовий пояс</Label>
                         <Select defaultValue="utc-8">
                           <SelectTrigger id="timezone">
-                            <SelectValue placeholder="Select timezone" />
+                            <SelectValue placeholder="Виберіть часовий пояс" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="utc-12">UTC-12:00</SelectItem>
@@ -188,10 +157,10 @@ const Settings = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="currency">Currency</Label>
+                        <Label htmlFor="currency">Валюта</Label>
                         <Select defaultValue="usd">
                           <SelectTrigger id="currency">
-                            <SelectValue placeholder="Select currency" />
+                            <SelectValue placeholder="Виберіть валюту" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="usd">USD ($)</SelectItem>
@@ -207,10 +176,10 @@ const Settings = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="language">Language</Label>
+                        <Label htmlFor="language">Мова</Label>
                         <Select defaultValue="en">
                           <SelectTrigger id="language">
-                            <SelectValue placeholder="Select language" />
+                            <SelectValue placeholder="Виберіть мову" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="en">English</SelectItem>
@@ -229,10 +198,10 @@ const Settings = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="date-format">Date Format</Label>
+                        <Label htmlFor="date-format">Формат дати</Label>
                         <Select defaultValue="mm-dd-yyyy">
                           <SelectTrigger id="date-format">
-                            <SelectValue placeholder="Select date format" />
+                            <SelectValue placeholder="Виберіть формат дати" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="mm-dd-yyyy">MM/DD/YYYY</SelectItem>
@@ -243,10 +212,10 @@ const Settings = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="weight-unit">Weight Unit</Label>
+                        <Label htmlFor="weight-unit">Одиниця ваги</Label>
                         <Select defaultValue="lb">
                           <SelectTrigger id="weight-unit">
-                            <SelectValue placeholder="Select weight unit" />
+                            <SelectValue placeholder="Виберіть одиницю ваги" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="lb">Pounds (lb)</SelectItem>
@@ -266,9 +235,9 @@ const Settings = () => {
               <AnimatedSection animation="fade-up">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Payment Methods</CardTitle>
+                    <CardTitle>Методи оплати</CardTitle>
                     <CardDescription>
-                      Configure payment methods for your store
+                      Налаштуйте методи оплати для вашого магазину
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -278,8 +247,8 @@ const Settings = () => {
                           <CreditCard className="h-5 w-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Credit Card</p>
-                          <p className="text-sm text-muted-foreground">Accept Visa, Mastercard, Amex</p>
+                          <p className="text-sm font-medium">Кредитна картка</p>
+                          <p className="text-sm text-muted-foreground">Приймайте Visa, Mastercard, Amex</p>
                         </div>
                       </div>
                       <Switch defaultChecked id="credit-card" />
@@ -294,7 +263,7 @@ const Settings = () => {
                         </div>
                         <div>
                           <p className="text-sm font-medium">PayPal</p>
-                          <p className="text-sm text-muted-foreground">Accept payments via PayPal</p>
+                          <p className="text-sm text-muted-foreground">Приймайте платежі через PayPal</p>
                         </div>
                       </div>
                       <Switch defaultChecked id="paypal" />
@@ -309,7 +278,7 @@ const Settings = () => {
                         </div>
                         <div>
                           <p className="text-sm font-medium">Apple Pay</p>
-                          <p className="text-sm text-muted-foreground">Accept payments via Apple Pay</p>
+                          <p className="text-sm text-muted-foreground">Приймайте платежі через Apple Pay</p>
                         </div>
                       </div>
                       <Switch id="apple-pay" />
@@ -324,7 +293,7 @@ const Settings = () => {
                         </div>
                         <div>
                           <p className="text-sm font-medium">Google Pay</p>
-                          <p className="text-sm text-muted-foreground">Accept payments via Google Pay</p>
+                          <p className="text-sm text-muted-foreground">Приймайте платежі через Google Pay</p>
                         </div>
                       </div>
                       <Switch id="google-pay" />
@@ -336,18 +305,18 @@ const Settings = () => {
               <AnimatedSection animation="fade-up" delay={100}>
                 <Card>
                   <CardHeader>
-                    <CardTitle>Currency Settings</CardTitle>
+                    <CardTitle>Налаштування валюти</CardTitle>
                     <CardDescription>
-                      Configure how currencies are displayed
+                      Налаштуйте, як відображаються валюти
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="currency-format">Currency Format</Label>
+                        <Label htmlFor="currency-format">Формат валюти</Label>
                         <Select defaultValue="symbol-before">
                           <SelectTrigger id="currency-format">
-                            <SelectValue placeholder="Select currency format" />
+                            <SelectValue placeholder="Виберіть формат валюти" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="symbol-before">$100.00</SelectItem>
@@ -357,10 +326,10 @@ const Settings = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="decimal-separator">Decimal Separator</Label>
+                        <Label htmlFor="decimal-separator">Десятковий роздільник</Label>
                         <Select defaultValue="dot">
                           <SelectTrigger id="decimal-separator">
-                            <SelectValue placeholder="Select decimal separator" />
+                            <SelectValue placeholder="Виберіть десятковий роздільник" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="dot">Dot (100.00)</SelectItem>
@@ -372,10 +341,10 @@ const Settings = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="thousand-separator">Thousand Separator</Label>
+                        <Label htmlFor="thousand-separator">Роздільник тисяч</Label>
                         <Select defaultValue="comma">
                           <SelectTrigger id="thousand-separator">
-                            <SelectValue placeholder="Select thousand separator" />
+                            <SelectValue placeholder="Виберіть роздільник тисяч" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="comma">Comma (1,000.00)</SelectItem>
@@ -387,10 +356,10 @@ const Settings = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="decimal-places">Decimal Places</Label>
+                        <Label htmlFor="decimal-places">Кількість знаків після коми</Label>
                         <Select defaultValue="2">
                           <SelectTrigger id="decimal-places">
-                            <SelectValue placeholder="Select decimal places" />
+                            <SelectValue placeholder="Виберіть кількість знаків після коми" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="0">0 (100)</SelectItem>
@@ -410,16 +379,16 @@ const Settings = () => {
               <AnimatedSection animation="fade-up">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Email Notifications</CardTitle>
+                    <CardTitle>Сповіщення електронною поштою</CardTitle>
                     <CardDescription>
-                      Configure email notifications for various events
+                      Налаштуйте сповіщення електронною поштою для різних подій
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">New Order</p>
-                        <p className="text-sm text-muted-foreground">Receive email when a new order is placed</p>
+                        <p className="text-sm font-medium">Нове замовлення</p>
+                        <p className="text-sm text-muted-foreground">Отримуйте електронний лист, коли розміщено нове замовлення</p>
                       </div>
                       <Switch defaultChecked id="new-order-email" />
                     </div>
@@ -428,8 +397,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">Order Status Change</p>
-                        <p className="text-sm text-muted-foreground">Receive email when an order status changes</p>
+                        <p className="text-sm font-medium">Зміна статусу замовлення</p>
+                        <p className="text-sm text-muted-foreground">Отримуйте електронний лист, коли змінюється статус замовлення</p>
                       </div>
                       <Switch defaultChecked id="order-status-email" />
                     </div>
@@ -438,8 +407,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">Inventory Alerts</p>
-                        <p className="text-sm text-muted-foreground">Receive email when inventory is low</p>
+                        <p className="text-sm font-medium">Сповіщення про запаси</p>
+                        <p className="text-sm text-muted-foreground">Отримуйте електронний лист, коли запаси низькі</p>
                       </div>
                       <Switch defaultChecked id="inventory-email" />
                     </div>
@@ -448,8 +417,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">Customer Registration</p>
-                        <p className="text-sm text-muted-foreground">Receive email when a new customer registers</p>
+                        <p className="text-sm font-medium">Реєстрація клієнта</p>
+                        <p className="text-sm text-muted-foreground">Отримуйте електронний лист, коли реєструється новий клієнт</p>
                       </div>
                       <Switch id="customer-email" />
                     </div>
@@ -458,8 +427,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">XML Import Completion</p>
-                        <p className="text-sm text-muted-foreground">Receive email when XML import completes</p>
+                        <p className="text-sm font-medium">Завершення імпорту XML</p>
+                        <p className="text-sm text-muted-foreground">Отримуйте електронний лист, коли завершується імпорт XML</p>
                       </div>
                       <Switch defaultChecked id="xml-import-email" />
                     </div>
@@ -470,9 +439,9 @@ const Settings = () => {
               <AnimatedSection animation="fade-up" delay={100}>
                 <Card>
                   <CardHeader>
-                    <CardTitle>SMTP Settings</CardTitle>
+                    <CardTitle>Налаштування SMTP</CardTitle>
                     <CardDescription>
-                      Configure your SMTP server for sending emails
+                      Налаштуйте свій SMTP-сервер для надсилання електронних листів
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -531,16 +500,16 @@ const Settings = () => {
               <AnimatedSection animation="fade-up">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Security Settings</CardTitle>
+                    <CardTitle>Налаштування безпеки</CardTitle>
                     <CardDescription>
-                      Configure security settings for your store
+                      Налаштуйте параметри безпеки для вашого магазину
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">Two-Factor Authentication</p>
-                        <p className="text-sm text-muted-foreground">Require two-factor authentication for admin login</p>
+                        <p className="text-sm font-medium">Двофакторна аутентифікація</p>
+                        <p className="text-sm text-muted-foreground">Вимагати двофакторну аутентифікацію для входу адміністратора</p>
                       </div>
                       <Switch id="two-factor" />
                     </div>
@@ -549,8 +518,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">SSL Enforcement</p>
-                        <p className="text-sm text-muted-foreground">Enforce SSL for all pages</p>
+                        <p className="text-sm font-medium">Примусове використання SSL</p>
+                        <p className="text-sm text-muted-foreground">Примусово використовувати SSL для всіх сторінок</p>
                       </div>
                       <Switch defaultChecked id="ssl" />
                     </div>
@@ -559,8 +528,8 @@ const Settings = () => {
                     
                     <div className="flex items-center justify-between py-3">
                       <div>
-                        <p className="text-sm font-medium">Login Attempt Limits</p>
-                        <p className="text-sm text-muted-foreground">Lock account after 5 failed login attempts</p>
+                        <p className="text-sm font-medium">Обмеження спроб входу</p>
+                        <p className="text-sm text-muted-foreground">Заблокувати обліковий запис після 5 невдалих спроб входу</p>
                       </div>
                       <Switch defaultChecked id="login-limits" />
                     </div>
@@ -568,10 +537,10 @@ const Settings = () => {
                     <Separator />
                     
                     <div className="space-y-2">
-                      <Label htmlFor="password-policy">Password Policy</Label>
+                      <Label htmlFor="password-policy">Політика паролів</Label>
                       <Select defaultValue="strong">
                         <SelectTrigger id="password-policy">
-                          <SelectValue placeholder="Select password policy" />
+                          <SelectValue placeholder="Виберіть політику паролів" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="basic">Basic (8+ characters)</SelectItem>
@@ -582,10 +551,10 @@ const Settings = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="session-timeout">Session Timeout (minutes)</Label>
+                      <Label htmlFor="session-timeout">Тайм-аут сесії (хвилини)</Label>
                       <Select defaultValue="30">
                         <SelectTrigger id="session-timeout">
-                          <SelectValue placeholder="Select session timeout" />
+                          <SelectValue placeholder="Виберіть тайм-аут сесії" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="15">15 minutes</SelectItem>
@@ -604,9 +573,9 @@ const Settings = () => {
               <AnimatedSection animation="fade-up">
                 <Card>
                   <CardHeader>
-                    <CardTitle>API Settings</CardTitle>
+                    <CardTitle>Налаштування API</CardTitle>
                     <CardDescription>
-                      Manage API keys and access
+                      Керуйте ключами API та доступом
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -739,29 +708,6 @@ const Settings = () => {
         </main>
       </div>
     </div>
-  );
-};
-
-interface NavItemProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
-
-const NavItem = ({ href, icon, label, active }: NavItemProps) => {
-  return (
-    <Link
-      to={href}
-      className={`flex items-center h-10 rounded-md px-3 text-sm font-medium ${
-        active
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:bg-muted transition-colors'
-      }`}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </Link>
   );
 };
 
