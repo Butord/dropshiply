@@ -61,7 +61,7 @@ const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
       <div className="p-4 border-t border-border">
         <div className="flex items-center">
           <Avatar className="h-8 w-8 mr-2">
-            <AvatarFallback>{user?.name?.charAt(0) || 'A'}</AvatarFallback>
+            <AvatarFallback>{user?.name?.charAt(0) || 'А'}</AvatarFallback>
           </Avatar>
           <div>
             <div className="text-sm font-medium">{user?.name || 'Адміністратор'}</div>
