@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 // Admin Pages
 import Dashboard from "./pages/admin/Dashboard";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             
             {/* Admin Routes - захищені */}
             <Route 
