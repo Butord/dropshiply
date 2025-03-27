@@ -26,6 +26,7 @@ import OrderManagement from "./pages/admin/OrderManagement";
 import PaymentSettings from "./pages/admin/PaymentSettings";
 import CustomerManagement from "./pages/admin/CustomerManagement";
 import Settings from "./pages/admin/Settings";
+import DatabaseManagement from "./pages/admin/DatabaseManagement";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,14 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly={true}>
                   <CustomerManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/database" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <DatabaseManagement />
                 </ProtectedRoute>
               } 
             />
