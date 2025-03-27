@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface CartItem {
   id: string;
@@ -17,30 +18,72 @@ interface CartContextType {
   clearCart: () => void;
   getCartCount: () => number;
   getTotal: () => number;
+  isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-
-  // Завантаження кошика з localStorage при ініціалізації
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  
+  // Завантаження кошика при ініціалізації
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
+    const loadCart = async () => {
+      setIsLoading(true);
       try {
-        setItems(JSON.parse(savedCart));
+        // Якщо користувач авторизований, спробуємо отримати кошик з бази даних
+        if (user && typeof window !== 'undefined') {
+          // В браузері ми не можемо безпосередньо звертатись до MySQL,
+          // тому тут має бути API-запит до сервера (який ми реалізуємо пізніше)
+          // Наразі повертаємось до localStorage
+          const savedCart = localStorage.getItem('cart');
+          if (savedCart) {
+            try {
+              setItems(JSON.parse(savedCart));
+            } catch (error) {
+              console.error('Помилка при завантаженні кошика:', error);
+              localStorage.removeItem('cart');
+            }
+          }
+        } else {
+          // Для неавторизованих користувачів використовуємо localStorage
+          const savedCart = localStorage.getItem('cart');
+          if (savedCart) {
+            try {
+              setItems(JSON.parse(savedCart));
+            } catch (error) {
+              console.error('Помилка при завантаженні кошика:', error);
+              localStorage.removeItem('cart');
+            }
+          }
+        }
       } catch (error) {
         console.error('Помилка при завантаженні кошика:', error);
-        localStorage.removeItem('cart');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [user]);
+
+  // Збереження кошика при зміні
+  useEffect(() => {
+    if (!isLoading) {
+      // Завжди зберігаємо в localStorage незалежно від авторизації
+      // (це гарантує, що кошик не втратиться при виході/вході в систему)
+      localStorage.setItem('cart', JSON.stringify(items));
+
+      // Якщо користувач авторизований, зберігаємо також в базу даних
+      if (user && typeof window !== 'undefined') {
+        // Тут буде API-запит до сервера для оновлення кошика в MySQL
+        // Наразі тільки логуємо дію
+        console.log('Синхронізація кошика з базою даних для користувача', user.id);
       }
     }
-  }, []);
-
-  // Збереження кошика в localStorage при зміні
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
+  }, [items, isLoading, user]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
@@ -94,7 +137,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         removeItem,
         clearCart,
         getCartCount,
-        getTotal
+        getTotal,
+        isLoading
       }}
     >
       {children}
