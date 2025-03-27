@@ -8,7 +8,8 @@ import {
   LogOut,
   LayoutDashboard,
   Upload,
-  Globe
+  Globe,
+  CreditCard
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -46,6 +47,7 @@ const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
         <NavItem href="/admin/xml-import" icon={<Upload className="h-4 w-4" />} label="XML Імпорт" active={activePage === 'xml-import'} />
         <NavItem href="/admin/orders" icon={<ShoppingCart className="h-4 w-4" />} label="Замовлення" active={activePage === 'orders'} />
         <NavItem href="/admin/customers" icon={<Users className="h-4 w-4" />} label="Клієнти" active={activePage === 'customers'} />
+        <NavItem href="/admin/payment-settings" icon={<CreditCard className="h-4 w-4" />} label="Налаштування оплати" active={activePage === 'payment-settings'} />
         <NavItem href="/admin/settings" icon={<Settings className="h-4 w-4" />} label="Налаштування" active={activePage === 'settings'} />
         
         <Separator className="my-3" />

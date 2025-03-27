@@ -16,7 +16,10 @@ import {
   Mail,
   User,
   CheckCircle,
-  MessageCircle
+  MessageCircle,
+  Smartphone,
+  Wallet,
+  Banknote
 } from 'lucide-react';
 import {
   Dialog,
@@ -280,12 +283,46 @@ const Checkout = () => {
                             <div>
                               <div
                                 className={`border rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                                  formData.paymentMethod === 'privat24' ? 'border-primary bg-muted/50' : ''
+                                }`}
+                                onClick={() => handlePaymentMethodChange('privat24')}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Smartphone className="h-5 w-5 text-green-600" />
+                                  <div>
+                                    <p className="font-medium">Приват24</p>
+                                    <p className="text-xs text-muted-foreground">Оплата через Приват24</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <div
+                                className={`border rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                                  formData.paymentMethod === 'monobank' ? 'border-primary bg-muted/50' : ''
+                                }`}
+                                onClick={() => handlePaymentMethodChange('monobank')}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Wallet className="h-5 w-5 text-yellow-600" />
+                                  <div>
+                                    <p className="font-medium">Монобанк</p>
+                                    <p className="text-xs text-muted-foreground">Оплата через Монобанк</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <div
+                                className={`border rounded-md p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
                                   formData.paymentMethod === 'cod' ? 'border-primary bg-muted/50' : ''
                                 }`}
                                 onClick={() => handlePaymentMethodChange('cod')}
                               >
                                 <div className="flex items-center gap-3">
-                                  <Truck className="h-5 w-5" />
+                                  <Banknote className="h-5 w-5" />
                                   <div>
                                     <p className="font-medium">Накладений платіж</p>
                                     <p className="text-xs text-muted-foreground">Оплата при отриманні</p>
@@ -295,7 +332,7 @@ const Checkout = () => {
                             </div>
                           </div>
                           
-                          {formData.paymentMethod === 'card' && (
+                          {(formData.paymentMethod === 'card' || formData.paymentMethod === 'privat24' || formData.paymentMethod === 'monobank') && (
                             <div className="space-y-4 mt-4">
                               <p className="text-sm text-muted-foreground">
                                 Ми надішлемо вам платіжні реквізити через обраний метод повідомлення. 
@@ -371,13 +408,20 @@ const Checkout = () => {
                             <span className="text-muted-foreground">Доставка</span>
                             <span>{shipping.toLocaleString()} грн</span>
                           </div>
+                          
+                          {formData.paymentMethod === 'cod' && (
+                            <div className="flex justify-between font-medium text-amber-600">
+                              <span>Комісія за накладений платіж</span>
+                              <span>30 грн</span>
+                            </div>
+                          )}
                         </div>
                         
                         <Separator />
                         
                         <div className="flex justify-between font-semibold text-lg">
                           <span>Всього</span>
-                          <span>{totalAmount.toLocaleString()} грн</span>
+                          <span>{(totalAmount + (formData.paymentMethod === 'cod' ? 30 : 0)).toLocaleString()} грн</span>
                         </div>
                         
                         <Button 
@@ -405,7 +449,7 @@ const Checkout = () => {
           <DialogHeader>
             <DialogTitle className="text-center">Замовлення успішно оформлено!</DialogTitle>
             <DialogDescription className="text-center">
-              {formData.paymentMethod === 'card' ? 
+              {formData.paymentMethod === 'card' || formData.paymentMethod === 'privat24' || formData.paymentMethod === 'monobank' ? 
                 `Дякуємо за ваше замовлення. Ми надіслали деталі оплати на ваш ${
                   formData.notificationMethod === 'email' ? 'email' : 
                   formData.notificationMethod === 'viber' ? 'Viber' : 'Telegram'
