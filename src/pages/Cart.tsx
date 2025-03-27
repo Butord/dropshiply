@@ -17,64 +17,21 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedSection from '@/components/ui/AnimatedSection';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-}
-
-// Моковані дані для демонстрації
-const initialCartItems: CartItem[] = [
-  {
-    id: '1',
-    name: 'Смартфон Samsung Galaxy A54',
-    price: 12999,
-    image: 'https://via.placeholder.com/150',
-    quantity: 1
-  },
-  {
-    id: '2',
-    name: 'Ноутбук Lenovo IdeaPad 3',
-    price: 19999,
-    image: 'https://via.placeholder.com/150',
-    quantity: 2
-  }
-];
+import { useCart } from '@/contexts/CartContext';
 
 const Cart = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { items: cartItems, updateQuantity, removeItem, getTotal } = useCart();
   
   useEffect(() => {
     setIsPageLoaded(true);
   }, []);
-  
-  const updateQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    
-    setCartItems(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-  
-  const removeItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-    toast({
-      title: "Товар видалено",
-      description: "Товар був видалений з вашої корзини",
-    });
-  };
   
   const applyPromoCode = () => {
     if (promoCode.toLowerCase() === 'discount10') {
@@ -93,7 +50,7 @@ const Cart = () => {
     }
   };
   
-  const subTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subTotal = getTotal();
   const discountAmount = (subTotal * discount) / 100;
   const totalAmount = subTotal - discountAmount;
   
@@ -122,12 +79,18 @@ const Cart = () => {
                         {cartItems.map((item, index) => (
                           <div key={item.id}>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                              <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
-                                <img 
-                                  src={item.image} 
-                                  alt={item.name} 
-                                  className="w-full h-full object-cover"
-                                />
+                              <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0 bg-gray-100">
+                                {item.image && (
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = 'https://via.placeholder.com/150';
+                                    }}
+                                  />
+                                )}
                               </div>
                               
                               <div className="flex-grow">
@@ -158,7 +121,13 @@ const Cart = () => {
                                   variant="ghost" 
                                   size="sm"
                                   className="ml-4 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => removeItem(item.id)}
+                                  onClick={() => {
+                                    removeItem(item.id);
+                                    toast({
+                                      title: "Товар видалено",
+                                      description: "Товар був видалений з вашої корзини",
+                                    });
+                                  }}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
