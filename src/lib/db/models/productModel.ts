@@ -1,4 +1,3 @@
-
 import { query, queryOne } from '../config';
 import { Product } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,18 +5,18 @@ import { v4 as uuidv4 } from 'uuid';
 export class ProductModel {
   // Отримати всі товари
   static async getAll(): Promise<Product[]> {
-    const products = await query<Product>(`
-      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as imageUrls, GROUP_CONCAT(DISTINCT pt.tag) as tagList
+    const result = await query<any>(`
+      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
       FROM products p
       LEFT JOIN product_images pi ON p.id = pi.productId
       LEFT JOIN product_tags pt ON p.id = pt.productId
       GROUP BY p.id
     `);
 
-    return products.map(product => ({
+    return result.map(product => ({
       ...product,
-      images: product.imageUrls ? product.imageUrls.split(',') : [],
-      tags: product.tagList ? product.tagList.split(',') : [],
+      images: product.images_concat ? product.images_concat.split(',') : [],
+      tags: product.tags_concat ? product.tags_concat.split(',') : [],
       createdAt: new Date(product.createdAt).toISOString(),
       updatedAt: new Date(product.updatedAt).toISOString()
     }));
@@ -25,8 +24,8 @@ export class ProductModel {
 
   // Отримати товар за id
   static async getById(id: string): Promise<Product | null> {
-    const product = await queryOne<Product>(`
-      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as imageUrls, GROUP_CONCAT(DISTINCT pt.tag) as tagList
+    const result = await queryOne<any>(`
+      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
       FROM products p
       LEFT JOIN product_images pi ON p.id = pi.productId
       LEFT JOIN product_tags pt ON p.id = pt.productId
@@ -34,14 +33,14 @@ export class ProductModel {
       GROUP BY p.id
     `, [id]);
 
-    if (!product) return null;
+    if (!result) return null;
 
     return {
-      ...product,
-      images: product.imageUrls ? product.imageUrls.split(',') : [],
-      tags: product.tagList ? product.tagList.split(',') : [],
-      createdAt: new Date(product.createdAt).toISOString(),
-      updatedAt: new Date(product.updatedAt).toISOString()
+      ...result,
+      images: result.images_concat ? result.images_concat.split(',') : [],
+      tags: result.tags_concat ? result.tags_concat.split(',') : [],
+      createdAt: new Date(result.createdAt).toISOString(),
+      updatedAt: new Date(result.updatedAt).toISOString()
     };
   }
 

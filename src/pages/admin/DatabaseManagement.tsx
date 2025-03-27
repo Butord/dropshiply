@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,10 +32,8 @@ const DatabaseManagement = () => {
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
 
-  // Функція для перевірки підключення до бази даних
   const checkConnection = async () => {
     try {
-      // Імпортуємо динамічно, щоб уникнути проблем з серверним рендерингом
       const { query } = await import('@/lib/db/config');
       await query('SELECT 1');
       setDbStatus('connected');
@@ -55,7 +52,6 @@ const DatabaseManagement = () => {
     }
   };
 
-  // Функція для ініціалізації бази даних
   const handleInitialize = async () => {
     setIsInitializing(true);
     try {
@@ -85,32 +81,26 @@ const DatabaseManagement = () => {
     }
   };
 
-  // Функція для імпорту демо-даних
   const importDemoData = async () => {
     setIsImporting(true);
     setImportProgress(0);
     
     try {
-      // Імпорт категорій
       setImportProgress(10);
       for (const category of mockCategories) {
         await CategoryModel.create(category);
       }
       
-      // Імпорт товарів
       setImportProgress(30);
       for (const product of mockProducts) {
         await ProductModel.create(product);
       }
       
-      // Імпорт XML джерел
       setImportProgress(60);
       for (const source of mockXMLSources) {
         await XMLSourceModel.create(source);
       }
       
-      // Імпорт клієнтів і замовлень в реальній системі
-      // (в цьому прикладі пропустимо для спрощення)
       setImportProgress(100);
       
       toast({
@@ -131,10 +121,8 @@ const DatabaseManagement = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar */}
       <AdminSidebar activePage="database" />
       
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 border-b border-border flex items-center px-6">
           <h1 className="text-xl font-semibold">Управління базою даних</h1>
@@ -282,7 +270,7 @@ const DatabaseManagement = () => {
                     </AlertDescription>
                   </Alert>
                   
-                  <Alert variant="warning">
+                  <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Увага</AlertTitle>
                     <AlertDescription>
@@ -385,7 +373,7 @@ const DatabaseManagement = () => {
                   <Button 
                     variant="outline" 
                     className="w-full sm:w-auto"
-                    disabled={true} // Функція експорту ще не реалізована
+                    disabled={true}
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Експортувати дані
@@ -416,7 +404,7 @@ const DatabaseManagement = () => {
                   <Button 
                     variant="destructive"
                     className="w-full sm:w-auto"
-                    disabled={true} // Функція очищення ще не реалізована
+                    disabled={true}
                   >
                     Очистити базу даних
                   </Button>
