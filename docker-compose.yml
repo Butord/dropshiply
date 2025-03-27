@@ -1,0 +1,35 @@
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+    environment:
+      - VITE_DB_HOST=db
+      - VITE_DB_PORT=3306
+      - VITE_DB_NAME=dropshiply
+      - VITE_DB_USER=dropshiply_user
+      - VITE_DB_PASSWORD=dropshiply_password
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=dropshiply
+      - MYSQL_USER=dropshiply_user
+      - MYSQL_PASSWORD=dropshiply_password
+      - MYSQL_ROOT_PASSWORD=root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql_data:
