@@ -117,6 +117,12 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 // Функція для ініціалізації бази даних
 export async function initializeDatabase() {
+  // Exit early if running in browser
+  if (typeof window !== 'undefined') {
+    console.warn('Database initialization is not supported in browser environment');
+    return false;
+  }
+  
   try {
     console.log('Початок ініціалізації бази даних...');
     

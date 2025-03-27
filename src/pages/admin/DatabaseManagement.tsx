@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,13 +17,9 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { initializeDatabase } from '@/lib/db/init';
 import { mockProducts, mockCategories, mockXMLSources } from '@/lib/mockData';
 import { mockCustomers } from '@/lib/mockCustomers';
 import { mockOrders } from '@/lib/mockOrders';
-import { ProductModel } from '@/lib/db/models/productModel';
-import { CategoryModel } from '@/lib/db/models/categoryModel';
-import { XMLSourceModel } from '@/lib/db/models/xmlSourceModel';
 
 const DatabaseManagement = () => {
   const { toast } = useToast();
@@ -33,6 +30,14 @@ const DatabaseManagement = () => {
   const [isImporting, setIsImporting] = useState(false);
 
   const checkConnection = async () => {
+    if (typeof window !== 'undefined') {
+      toast({
+        title: "Інформація",
+        description: "Операції з базою даних не підтримуються в браузері. Для повної функціональності використовуйте серверне оточення.",
+      });
+      return;
+    }
+
     try {
       const { query } = await import('@/lib/db/config');
       await query('SELECT 1');
@@ -53,8 +58,17 @@ const DatabaseManagement = () => {
   };
 
   const handleInitialize = async () => {
+    if (typeof window !== 'undefined') {
+      toast({
+        title: "Інформація",
+        description: "Ініціалізація бази даних не підтримується в браузері. Для повної функціональності використовуйте серверне оточення.",
+      });
+      return;
+    }
+
     setIsInitializing(true);
     try {
+      const { initializeDatabase } = await import('@/lib/db/init');
       const success = await initializeDatabase();
       if (success) {
         toast({
@@ -82,21 +96,32 @@ const DatabaseManagement = () => {
   };
 
   const importDemoData = async () => {
+    if (typeof window !== 'undefined') {
+      toast({
+        title: "Інформація",
+        description: "Імпорт демо-даних не підтримується в браузері. Для повної функціональності використовуйте серверне оточення.",
+      });
+      return;
+    }
+
     setIsImporting(true);
     setImportProgress(0);
     
     try {
       setImportProgress(10);
+      const { CategoryModel } = await import('@/lib/db/models/categoryModel');
       for (const category of mockCategories) {
         await CategoryModel.create(category);
       }
       
       setImportProgress(30);
+      const { ProductModel } = await import('@/lib/db/models/productModel');
       for (const product of mockProducts) {
         await ProductModel.create(product);
       }
       
       setImportProgress(60);
+      const { XMLSourceModel } = await import('@/lib/db/models/xmlSourceModel');
       for (const source of mockXMLSources) {
         await XMLSourceModel.create(source);
       }
@@ -119,6 +144,18 @@ const DatabaseManagement = () => {
     }
   };
 
+  // Environment warning message
+  const BrowserWarning = () => (
+    <Alert>
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle>Браузерне оточення</AlertTitle>
+      <AlertDescription>
+        Операції з базою даних доступні лише в серверному оточенні. 
+        У браузері ці функції недоступні через обмеження безпеки.
+      </AlertDescription>
+    </Alert>
+  );
+
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       <AdminSidebar activePage="database" />
@@ -129,7 +166,9 @@ const DatabaseManagement = () => {
         </header>
         
         <main className="flex-1 overflow-y-auto p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {typeof window !== 'undefined' && <BrowserWarning />}
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 mt-4">
             <TabsList>
               <TabsTrigger value="status">Статус</TabsTrigger>
               <TabsTrigger value="initialize">Ініціалізація</TabsTrigger>
@@ -282,7 +321,7 @@ const DatabaseManagement = () => {
                 <CardFooter>
                   <Button 
                     onClick={handleInitialize} 
-                    disabled={isInitializing || dbStatus === 'error'}
+                    disabled={isInitializing || dbStatus === 'error' || typeof window !== 'undefined'}
                     className="w-full sm:w-auto"
                   >
                     {isInitializing ? (
@@ -342,7 +381,7 @@ const DatabaseManagement = () => {
                       </div>
                     )}
                     
-                    <Alert variant="warning">
+                    <Alert>
                       <AlertTriangle className="h-4 w-4" />
                       <AlertTitle>Увага</AlertTitle>
                       <AlertDescription>
@@ -355,7 +394,7 @@ const DatabaseManagement = () => {
                 <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                   <Button 
                     onClick={importDemoData} 
-                    disabled={isImporting || dbStatus !== 'connected'}
+                    disabled={isImporting || dbStatus !== 'connected' || typeof window !== 'undefined'}
                     className="w-full sm:w-auto"
                   >
                     {isImporting ? (
