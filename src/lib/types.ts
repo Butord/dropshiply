@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -126,3 +127,38 @@ export interface Customer {
   createdAt: string;
   status: 'active' | 'inactive';
 }
+
+// Нові інтерфейси для налаштувань повідомлень
+export interface EmailSettings {
+  enabled: boolean;
+  senderEmail: string;
+  senderName?: string;
+  subject: string;
+  template: string;
+  smtpSettings?: {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth: {
+      user: string;
+      pass: string;
+    }
+  };
+}
+
+export interface OrderNotification {
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  amount: number;
+  paymentMethod: string;
+  paymentDetails?: string;
+  items: {
+    name: string;
+    quantity: number;
+    price: number;
+  }[];
+}
+

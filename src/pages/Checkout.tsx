@@ -33,10 +33,13 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { useCart } from '@/contexts/CartContext';
+import { sendOrderNotification, generateOrderNumber } from '@/lib/services/notificationService';
+import { OrderNotification } from '@/lib/types';
 
 const Checkout = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -80,10 +83,12 @@ const Checkout = () => {
     }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Тут в реальному додатку була б логіка відправки замовлення на сервер
+    // Генеруємо номер замовлення
+    const newOrderNumber = generateOrderNumber();
+    setOrderNumber(newOrderNumber);
     
     // Симуляція завантаження
     toast({
@@ -91,6 +96,52 @@ const Checkout = () => {
       description: "Будь ласка, зачекайте поки ми обробляємо ваше замовлення",
     });
     
+    // Підготовка даних для відправки сповіщення
+    const subTotal = getTotal();
+    const shipping = 150;
+    const totalAmount = subTotal + shipping + (formData.paymentMethod === 'cod' ? 30 : 0);
+    
+    // Формуємо деталі платежу в залежності від методу оплати
+    let paymentDetails = '';
+    if (formData.paymentMethod === 'card' || formData.paymentMethod === 'privat24' || formData.paymentMethod === 'monobank') {
+      paymentDetails = `Для оплати замовлення, будь ласка, скористайтеся вказаними реквізитами:
+Картка: 4444 5555 6666 7777
+Отримувач: ТОВ "Ваш Магазин"
+Сума до сплати: ${totalAmount.toLocaleString()} грн`;
+    } else if (formData.paymentMethod === 'cod') {
+      paymentDetails = `Сплатіть при отриманні замовлення. Додаткова комісія: 30 грн.`;
+    }
+    
+    // Відправка сповіщення про замовлення на email клієнта
+    if (formData.email) {
+      const notification: OrderNotification = {
+        orderId: 'temp-id', // В реальній програмі тут був би ID з бази даних
+        orderNumber: newOrderNumber,
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        amount: totalAmount,
+        paymentMethod: formData.paymentMethod === 'card' ? 'Картка' : 
+                       formData.paymentMethod === 'privat24' ? 'Приват24' : 
+                       formData.paymentMethod === 'monobank' ? 'Монобанк' : 
+                       'Накладений платіж',
+        paymentDetails: paymentDetails,
+        items: items.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+      
+      try {
+        // Відправляємо сповіщення клієнту
+        await sendOrderNotification(notification);
+      } catch (error) {
+        console.error('Помилка відправки сповіщення:', error);
+      }
+    }
+    
+    // Затримка для симуляції обробки замовлення
     setTimeout(() => {
       // Clear the cart after successful order
       clearCart();
@@ -479,3 +530,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
