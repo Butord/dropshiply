@@ -85,10 +85,18 @@ export const sendEmailViaFormSubmit = async (
 ): Promise<boolean> => {
   try {
     // Підготовка даних
+    const itemsList = notification.items
+      .map(item => `${item.name} x ${item.quantity} - ${item.price} грн`)
+      .join('\n');
+    
+    // Підготовка змінних для шаблону
     const variables = {
       name: notification.customerName,
       orderNumber: notification.orderNumber,
-      amount: notification.amount
+      amount: notification.amount,
+      items: itemsList,
+      paymentMethod: notification.paymentMethod,
+      paymentDetails: notification.paymentDetails || ''
     };
 
     const content = prepareTemplate(settings.template, variables);
@@ -110,12 +118,16 @@ export const sendEmailViaFormSubmit = async (
       }
     });
     
-    const result = await response.json();
-    console.log('Лист відправлено через formsubmit.co:', result);
-    return response.ok;
+    if (response.ok) {
+      console.log('Лист відправлено через formsubmit.co');
+      return true;
+    } else {
+      const result = await response.json();
+      console.error('Помилка відправки через formsubmit.co:', result);
+      return false;
+    }
   } catch (error) {
     console.error('Помилка відправки email через formsubmit.co:', error);
     return false;
   }
 };
-
