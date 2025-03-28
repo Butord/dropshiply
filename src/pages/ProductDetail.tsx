@@ -20,7 +20,8 @@ import Footer from '@/components/layout/Footer';
 import ProductCard from '@/components/product/ProductCard';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { mockProducts } from '@/lib/mockData';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+import { useCart } from '@/contexts/CartContext';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,7 @@ const ProductDetail = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const { addItem } = useCart();
   
   useEffect(() => {
     setIsPageLoaded(true);
@@ -71,8 +73,15 @@ const ProductDetail = () => {
   };
   
   const handleAddToCart = () => {
-    toast({
-      title: "Додано до кошика",
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      quantity: quantity
+    });
+    
+    toast.success("Додано до кошика", {
       description: `${quantity} x ${product.name} було додано до вашого кошика.`,
       duration: 3000,
     });
