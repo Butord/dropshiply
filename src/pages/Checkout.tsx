@@ -32,22 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedSection from '@/components/ui/AnimatedSection';
-
-// Моковані дані для демонстрації
-const cartItems = [
-  {
-    id: '1',
-    name: 'Смартфон Samsung Galaxy A54',
-    price: 12999,
-    quantity: 1
-  },
-  {
-    id: '2',
-    name: 'Ноутбук Lenovo IdeaPad 3',
-    price: 19999,
-    quantity: 2
-  }
-];
+import { useCart } from '@/contexts/CartContext';
 
 const Checkout = () => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
@@ -67,6 +52,7 @@ const Checkout = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { items, getTotal, clearCart } = useCart();
   
   useEffect(() => {
     setIsPageLoaded(true);
@@ -106,6 +92,8 @@ const Checkout = () => {
     });
     
     setTimeout(() => {
+      // Clear the cart after successful order
+      clearCart();
       setOrderComplete(true);
     }, 1500);
   };
@@ -115,7 +103,7 @@ const Checkout = () => {
     navigate('/');
   };
   
-  const subTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subTotal = getTotal();
   const shipping = 150;
   const totalAmount = subTotal + shipping;
   
@@ -387,14 +375,20 @@ const Checkout = () => {
                       <h2 className="text-xl font-semibold mb-4">Ваше замовлення</h2>
                       
                       <div className="space-y-4">
-                        {cartItems.map((item) => (
-                          <div key={item.id} className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              {item.name} × {item.quantity}
-                            </span>
-                            <span>{(item.price * item.quantity).toLocaleString()} грн</span>
+                        {items.length > 0 ? (
+                          items.map((item) => (
+                            <div key={item.id} className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                {item.name} × {item.quantity}
+                              </span>
+                              <span>{(item.price * item.quantity).toLocaleString()} грн</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-muted-foreground text-center py-4">
+                            Ваш кошик порожній
                           </div>
-                        ))}
+                        )}
                         
                         <Separator />
                         
@@ -428,6 +422,7 @@ const Checkout = () => {
                           className="w-full mt-4"
                           size="lg"
                           type="submit"
+                          disabled={items.length === 0}
                         >
                           Підтвердити замовлення
                         </Button>
