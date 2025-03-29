@@ -89,17 +89,22 @@ const ProductDetail = () => {
   
   const handleToggleFavorite = () => {
     setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Видалено з обраного" : "Додано до обраного",
-      description: `${product.name} було ${isFavorite ? "видалено з" : "додано до"} вашого обраного.`,
-      duration: 3000,
-    });
+    if (isFavorite) {
+      toast.info("Видалено з обраного", {
+        description: `${product.name} було видалено з вашого обраного.`,
+        duration: 3000,
+      });
+    } else {
+      toast.success("Додано до обраного", {
+        description: `${product.name} було додано до вашого обраного.`,
+        duration: 3000,
+      });
+    }
   };
   
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast({
-      title: "Посилання скопійовано",
+    toast.info("Посилання скопійовано", {
       description: "Посилання на товар було скопійовано до буфера обміну.",
       duration: 3000,
     });

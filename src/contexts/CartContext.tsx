@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -30,36 +29,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   
-  // Завантаження кошика при ініціалізації
   useEffect(() => {
     const loadCart = async () => {
       setIsLoading(true);
       try {
         if (user && typeof window !== 'undefined') {
           try {
-            // Тут буде запит до API для отримання кошика з бази даних
-            // const response = await fetch(`${import.meta.env.VITE_API_URL}/cart`, {
-            //   headers: {
-            //     'Authorization': `Bearer ${user.token}` // В реальності, маємо передавати токен для аутентифікації
-            //   }
-            // });
-            
-            // if (response.ok) {
-            //   const data = await response.json();
-            //   setItems(data.items);
-            // } else {
-            //   // Якщо запит не вдалий, використовуємо дані з localStorage
-            //   loadFromLocalStorage();
-            // }
-            
-            // Наразі ще немає API, тому використовуємо localStorage
             loadFromLocalStorage();
           } catch (error) {
-            console.error('Помилка при отриманні кошика з бази даних:', error);
+            console.error('Помилка при отриманні кошика з localStorage:', error);
             loadFromLocalStorage();
           }
         } else {
-          // Для неавторизованих користувачів використовуємо localStorage
           loadFromLocalStorage();
         }
       } catch (error) {
@@ -84,39 +65,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadCart();
   }, [user]);
 
-  // Збереження кошика при зміні
   useEffect(() => {
     if (!isLoading) {
-      // Завжди зберігаємо в localStorage незалежно від авторизації
       localStorage.setItem('cart', JSON.stringify(items));
 
-      // Якщо користувач авторизований, синхронізуємо з базою даних
       if (user && typeof window !== 'undefined') {
         syncWithDatabase();
       }
     }
   }, [items, isLoading, user]);
 
-  // Функція для синхронізації кошика з базою даних
   const syncWithDatabase = async (): Promise<void> => {
     if (!user) return;
     
     try {
-      // Тут буде запит до API для оновлення кошика в базі даних
-      // const response = await fetch(`${import.meta.env.VITE_API_URL}/cart`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${user.token}` // В реальності, маємо передавати токен для аутентифікації
-      //   },
-      //   body: JSON.stringify({ items })
-      // });
-      
-      // if (!response.ok) {
-      //   throw new Error('Помилка при оновленні кошика в базі даних');
-      // }
-      
-      // Наразі тільки логуємо дію
       console.log('Синхронізація кошика з базою даних для користувача', user.id, items);
     } catch (error) {
       console.error('Помилка при синхронізації кошика з базою даних:', error);
@@ -126,16 +88,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
-      // Перевіряємо, чи є товар уже у кошику
       const existingItemIndex = prevItems.findIndex((i) => i.id === item.id);
       
       if (existingItemIndex !== -1) {
-        // Якщо товар уже є у кошику, оновлюємо його кількість
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += item.quantity;
         return updatedItems;
       } else {
-        // Якщо товару ще немає у кошику, додаємо його
         return [...prevItems, item];
       }
     });
