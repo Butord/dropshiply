@@ -31,7 +31,7 @@ const OrderManagement = () => {
   // Filter orders
   const filteredOrders = orders.filter(order => {
     // Status filter
-    if (statusFilter !== "all" && order.status !== statusFilter) {
+    if (statusFilter !== "all" && order.fulfillmentStatus !== statusFilter) {
       return false;
     }
     
@@ -40,7 +40,7 @@ const OrderManagement = () => {
       const query = searchQuery.toLowerCase();
       return (
         order.orderNumber.toLowerCase().includes(query) ||
-        order.customerName.toLowerCase().includes(query)
+        order.customer.name.toLowerCase().includes(query)
       );
     }
     
@@ -49,13 +49,17 @@ const OrderManagement = () => {
 
   const getStatusColor = (status: string): string => {
     switch (status) {
+      case "unfulfilled":
       case "pending":
         return "bg-yellow-100 text-yellow-800";
       case "processing":
         return "bg-blue-100 text-blue-800";
+      case "shipped":
+      case "delivered":
       case "completed":
         return "bg-green-100 text-green-800";
       case "cancelled":
+      case "returned":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -69,6 +73,7 @@ const OrderManagement = () => {
       case "pending":
         return "bg-yellow-100 text-yellow-800";
       case "failed":
+      case "refunded":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -118,9 +123,10 @@ const OrderManagement = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="unfulfilled">Unfulfilled</SelectItem>
                         <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
@@ -228,9 +234,10 @@ const OrderManagement = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="unfulfilled">Unfulfilled</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="shipped">Shipped</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
@@ -243,9 +250,9 @@ const OrderManagement = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
               <TabsList>
                 <TabsTrigger value="all">All Orders</TabsTrigger>
-                <TabsTrigger value="pending">Pending</TabsTrigger>
+                <TabsTrigger value="unfulfilled">Unfulfilled</TabsTrigger>
                 <TabsTrigger value="processing">Processing</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="shipped">Shipped</TabsTrigger>
               </TabsList>
             </Tabs>
           </AnimatedSection>
@@ -271,11 +278,11 @@ const OrderManagement = () => {
                         </div>
                         <div className="p-4 md:border-r">
                           <div className="text-sm text-muted-foreground mb-1">Customer</div>
-                          <div className="font-medium">{order.customerName}</div>
+                          <div className="font-medium">{order.customer.name}</div>
                         </div>
                         <div className="p-4 md:border-r">
                           <div className="text-sm text-muted-foreground mb-1">Date</div>
-                          <div className="font-medium">{formatDate(order.date)}</div>
+                          <div className="font-medium">{formatDate(order.createdAt)}</div>
                         </div>
                         <div className="p-4 md:border-r">
                           <div className="text-sm text-muted-foreground mb-1">Total</div>
@@ -284,8 +291,8 @@ const OrderManagement = () => {
                         <div className="p-4">
                           <div className="text-sm text-muted-foreground mb-1">Status</div>
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className={`${getStatusColor(order.status)}`}>
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            <Badge variant="outline" className={`${getStatusColor(order.fulfillmentStatus)}`}>
+                              {order.fulfillmentStatus.charAt(0).toUpperCase() + order.fulfillmentStatus.slice(1)}
                             </Badge>
                             <Badge variant="outline" className={`${getPaymentStatusColor(order.paymentStatus)}`}>
                               {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
@@ -304,7 +311,7 @@ const OrderManagement = () => {
                             Print
                           </Button>
                           <div className="ml-auto text-sm text-muted-foreground">
-                            {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                            {order.products.length} {order.products.length === 1 ? 'item' : 'items'}
                           </div>
                         </div>
                       </div>
