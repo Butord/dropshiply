@@ -10,7 +10,8 @@ import {
   Upload,
   Globe,
   CreditCard,
-  Database
+  Database,
+  Bell
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -50,6 +51,7 @@ const AdminSidebar = ({ activePage }: AdminSidebarProps) => {
         <NavItem href="/admin/customers" icon={<Users className="h-4 w-4" />} label="Клієнти" active={activePage === 'customers'} />
         <NavItem href="/admin/payment-settings" icon={<CreditCard className="h-4 w-4" />} label="Налаштування оплати" active={activePage === 'payment-settings'} />
         <NavItem href="/admin/database" icon={<Database className="h-4 w-4" />} label="База даних" active={activePage === 'database'} />
+        <NavItem href="/admin/notification-test" icon={<Bell className="h-4 w-4" />} label="Тестування сповіщень" active={activePage === 'notification-test'} />
         <NavItem href="/admin/settings" icon={<Settings className="h-4 w-4" />} label="Налаштування" active={activePage === 'settings'} />
         
         <Separator className="my-3" />

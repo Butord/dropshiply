@@ -38,7 +38,8 @@ import {
   Trash2, 
   Upload, 
   Users, 
-  XCircle 
+  XCircle,
+  Save
 } from 'lucide-react';
 import { mockProducts, mockCategories } from '@/lib/mockData';
 import AnimatedSection from '@/components/ui/AnimatedSection';
@@ -50,6 +51,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 
 // Create a schema for product validation
 const productSchema = z.object({
@@ -75,11 +77,28 @@ const ProductManagement = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [addProductOpen, setAddProductOpen] = useState(false);
+  const [editProductOpen, setEditProductOpen] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   
-  // Setup form
-  const form = useForm<ProductFormValues>({
+  // Setup add product form
+  const addForm = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      price: 0,
+      compareAtPrice: undefined,
+      category: mockCategories[0].name,
+      stock: 0,
+      sku: '',
+      imageUrl: 'https://placehold.co/600x400',
+    },
+  });
+
+  // Setup edit product form
+  const editForm = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: '',
@@ -189,6 +208,58 @@ const ProductManagement = () => {
       description: "The product has been deleted successfully.",
     });
   };
+
+  // Function to open edit dialog and populate form with product data
+  const handleEditProduct = (product: Product) => {
+    setCurrentProduct(product);
+    
+    // Set form values
+    editForm.reset({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      category: product.category,
+      stock: product.stock,
+      sku: product.sku,
+      imageUrl: product.images[0] || 'https://placehold.co/600x400',
+    });
+    
+    setEditProductOpen(true);
+  };
+
+  // Function to save edited product
+  const handleSaveEdit = (data: ProductFormValues) => {
+    if (!currentProduct) return;
+    
+    // Update the product
+    const updatedProducts = products.map(product => {
+      if (product.id === currentProduct.id) {
+        return {
+          ...product,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          compareAtPrice: data.compareAtPrice,
+          category: data.category,
+          stock: data.stock,
+          sku: data.sku,
+          images: [data.imageUrl, ...product.images.slice(1)], // Update first image, keep others
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return product;
+    });
+    
+    setProducts(updatedProducts);
+    
+    toast({
+      title: "Product Updated",
+      description: `${data.name} has been updated successfully.`,
+    });
+    
+    setEditProductOpen(false);
+  };
   
   const stockStatusColor = (stock: number) => {
     if (stock === 0) return 'text-red-500';
@@ -236,7 +307,7 @@ const ProductManagement = () => {
     setAddProductOpen(false);
     
     // Reset the form
-    form.reset();
+    addForm.reset();
   };
 
   // Function to handle product import
@@ -287,36 +358,7 @@ const ProductManagement = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar */}
-      <div className="w-64 border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
-          <Link to="/" className="text-xl font-semibold tracking-tight">
-            dropshiply
-          </Link>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <NavItem href="/admin" icon={<LineChart className="h-4 w-4" />} label="Dashboard" />
-          <NavItem href="/admin/products" icon={<Package className="h-4 w-4" />} label="Products" active />
-          <NavItem href="/admin/xml-import" icon={<FileText className="h-4 w-4" />} label="XML Import" />
-          <NavItem href="/admin/orders" icon={<ShoppingCart className="h-4 w-4" />} label="Orders" />
-          <NavItem href="/admin/customers" icon={<Users className="h-4 w-4" />} label="Customers" />
-          <NavItem href="/admin/settings" icon={<Settings className="h-4 w-4" />} label="Settings" />
-        </nav>
-        
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center">
-            <Avatar className="h-8 w-8 mr-2">
-              <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="Admin" />
-              <AvatarFallback>A</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="text-sm font-medium">Admin User</div>
-              <div className="text-xs text-muted-foreground">admin@example.com</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AdminSidebar activePage="products" />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -404,11 +446,11 @@ const ProductManagement = () => {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleAddProduct)} className="space-y-4 py-2">
+                <Form {...addForm}>
+                  <form onSubmit={addForm.handleSubmit(handleAddProduct)} className="space-y-4 py-2">
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem>
@@ -422,7 +464,7 @@ const ProductManagement = () => {
                       />
                       
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="sku"
                         render={({ field }) => (
                           <FormItem>
@@ -437,7 +479,7 @@ const ProductManagement = () => {
                     </div>
                     
                     <FormField
-                      control={form.control}
+                      control={addForm.control}
                       name="description"
                       render={({ field }) => (
                         <FormItem>
@@ -456,7 +498,7 @@ const ProductManagement = () => {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="price"
                         render={({ field }) => (
                           <FormItem>
@@ -470,7 +512,7 @@ const ProductManagement = () => {
                       />
                       
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="compareAtPrice"
                         render={({ field }) => (
                           <FormItem>
@@ -486,7 +528,7 @@ const ProductManagement = () => {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="category"
                         render={({ field }) => (
                           <FormItem>
@@ -514,7 +556,7 @@ const ProductManagement = () => {
                       />
                       
                       <FormField
-                        control={form.control}
+                        control={addForm.control}
                         name="stock"
                         render={({ field }) => (
                           <FormItem>
@@ -529,7 +571,7 @@ const ProductManagement = () => {
                     </div>
                     
                     <FormField
-                      control={form.control}
+                      control={addForm.control}
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
@@ -547,6 +589,184 @@ const ProductManagement = () => {
                         Cancel
                       </Button>
                       <Button type="submit">Add Product</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Edit Product Dialog */}
+            <Dialog open={editProductOpen} onOpenChange={setEditProductOpen}>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Product</DialogTitle>
+                  <DialogDescription>
+                    Edit the product details below.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...editForm}>
+                  <form onSubmit={editForm.handleSubmit(handleSaveEdit)} className="space-y-4 py-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Product Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Product name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editForm.control}
+                        name="sku"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>SKU</FormLabel>
+                            <FormControl>
+                              <Input placeholder="SKU-123" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Enter product description" 
+                              {...field} 
+                              rows={3}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Price</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editForm.control}
+                        name="compareAtPrice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Compare at Price (Optional)</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={editForm.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <Select 
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {mockCategories.map(category => (
+                                  <SelectItem key={category.id} value={category.name}>
+                                    {category.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={editForm.control}
+                        name="stock"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Stock Quantity</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="0" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    
+                    <FormField
+                      control={editForm.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product Image URL</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://example.com/image.jpg" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {currentProduct && (
+                      <div className="flex items-center space-x-2">
+                        <div className="h-16 w-16 rounded bg-muted overflow-hidden">
+                          <img 
+                            src={currentProduct.images[0]} 
+                            alt={currentProduct.name} 
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="text-sm">
+                          <p className="font-medium">Current Primary Image</p>
+                          <p className="text-muted-foreground">{currentProduct.images[0]}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <DialogFooter>
+                      <Button variant="outline" type="button" onClick={() => setEditProductOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </Button>
                     </DialogFooter>
                   </form>
                 </Form>
@@ -703,7 +923,11 @@ const ProductManagement = () => {
                             {stockStatusText(product.stock)}
                           </div>
                           <div className="col-span-2 flex justify-end space-x-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditProduct(product)}
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
@@ -771,29 +995,6 @@ const ProductManagement = () => {
         </main>
       </div>
     </div>
-  );
-};
-
-interface NavItemProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
-
-const NavItem = ({ href, icon, label, active }: NavItemProps) => {
-  return (
-    <Link
-      to={href}
-      className={`flex items-center h-10 rounded-md px-3 text-sm font-medium ${
-        active
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:bg-muted transition-colors'
-      }`}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </Link>
   );
 };
 

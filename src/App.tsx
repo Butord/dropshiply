@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +28,7 @@ import PaymentSettings from "./pages/admin/PaymentSettings";
 import CustomerManagement from "./pages/admin/CustomerManagement";
 import Settings from "./pages/admin/Settings";
 import DatabaseManagement from "./pages/admin/DatabaseManagement";
+import NotificationTest from "./pages/admin/NotificationTest";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +113,14 @@ const App = () => (
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <Settings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/notification-test" 
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <NotificationTest />
                   </ProtectedRoute>
                 } 
               />
