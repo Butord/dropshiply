@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Mail, Send, BrandTelegram } from "lucide-react";
+import { Loader2, Mail, Send, MessageSquare } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { 
   getEmailSettings, 
@@ -18,7 +17,6 @@ import {
   generateOrderNumber 
 } from "@/lib/services/notificationService";
 
-// Схема валідації для тестових даних
 const testNotificationSchema = z.object({
   email: z.string().email({ message: "Введіть коректну email адресу" }),
   name: z.string().min(2, { message: "Ім'я має містити принаймні 2 символи" }),
@@ -30,7 +28,6 @@ const NotificationTest = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("email");
 
-  // Налаштування форми
   const form = useForm<TestNotificationFormValues>({
     resolver: zodResolver(testNotificationSchema),
     defaultValues: {
@@ -39,11 +36,9 @@ const NotificationTest = () => {
     },
   });
 
-  // Отримання поточних налаштувань
   const emailSettings = getEmailSettings();
   const telegramSettings = getTelegramSettings();
 
-  // Створення тестового об'єкту повідомлення
   const createTestNotification = (data: TestNotificationFormValues) => {
     const testOrderNumber = generateOrderNumber();
     return {
@@ -60,15 +55,11 @@ const NotificationTest = () => {
     };
   };
 
-  // Функція тестування email сповіщення
   const handleTestEmail = async (data: TestNotificationFormValues) => {
     setIsLoading(true);
     
     try {
-      // Використовуємо спільну функцію для створення тестового повідомлення
       const testNotification = createTestNotification(data);
-
-      // Відправляємо тестове повідомлення
       const success = await sendOrderNotification(testNotification);
       
       if (success) {
@@ -95,12 +86,10 @@ const NotificationTest = () => {
     }
   };
 
-  // Функція тестування Telegram сповіщення
   const handleTestTelegram = async (data: TestNotificationFormValues) => {
     setIsLoading(true);
     
     try {
-      // Перевірка, чи налаштовані Telegram параметри
       if (!telegramSettings.enabled || !telegramSettings.botToken || !telegramSettings.chatId) {
         toast({
           title: "Telegram не налаштовано",
@@ -111,10 +100,8 @@ const NotificationTest = () => {
         return;
       }
       
-      // Створюємо тестовий об'єкт повідомлення
       const testNotification = createTestNotification(data);
       
-      // Відправляємо тестове повідомлення
       const success = await sendOrderNotification(testNotification);
       
       if (success) {
@@ -141,7 +128,6 @@ const NotificationTest = () => {
     }
   };
 
-  // Заглушка для Viber
   const handleTestViber = (data: TestNotificationFormValues) => {
     toast({
       title: "Viber сповіщення",
@@ -150,7 +136,6 @@ const NotificationTest = () => {
     });
   };
 
-  // Обробка відправки форми в залежності від активного табу
   const onSubmit = (data: TestNotificationFormValues) => {
     switch (activeTab) {
       case "email":
@@ -306,7 +291,7 @@ const NotificationTest = () => {
                             </>
                           ) : (
                             <>
-                              <BrandTelegram className="mr-2 h-4 w-4" />
+                              <MessageSquare className="mr-2 h-4 w-4" />
                               Відправити тестове повідомлення
                             </>
                           )}
