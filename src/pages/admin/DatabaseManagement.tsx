@@ -21,6 +21,12 @@ import { mockProducts, mockCategories, mockXMLSources } from '@/lib/mockData';
 import { mockCustomers } from '@/lib/mockCustomers';
 import { mockOrders } from '@/lib/mockOrders';
 
+// Отримання змінних середовища через import.meta.env (Vite)
+const DB_HOST = import.meta.env.VITE_DB_HOST || 'localhost';
+const DB_PORT = import.meta.env.VITE_DB_PORT || '3306';
+const DB_NAME = import.meta.env.VITE_DB_NAME || 'dropshiply';
+const DB_USER = import.meta.env.VITE_DB_USER || 'dropshiply_user';
+
 const DatabaseManagement = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('status');
@@ -191,7 +197,7 @@ const DatabaseManagement = () => {
                     <div>
                       <p className="font-medium">MySQL</p>
                       <p className="text-sm text-muted-foreground">
-                        {process.env.VITE_DB_HOST || 'localhost'}:{process.env.VITE_DB_PORT || '3306'}
+                        {DB_HOST}:{DB_PORT}
                       </p>
                     </div>
                     <div className="ml-auto">
@@ -251,25 +257,25 @@ const DatabaseManagement = () => {
                       <div>
                         <p className="text-sm font-medium mb-1">Хост</p>
                         <div className="p-2 rounded bg-muted/50">
-                          {process.env.VITE_DB_HOST || 'localhost'}
+                          {DB_HOST}
                         </div>
                       </div>
                       <div>
                         <p className="text-sm font-medium mb-1">Порт</p>
                         <div className="p-2 rounded bg-muted/50">
-                          {process.env.VITE_DB_PORT || '3306'}
+                          {DB_PORT}
                         </div>
                       </div>
                       <div>
                         <p className="text-sm font-medium mb-1">База даних</p>
                         <div className="p-2 rounded bg-muted/50">
-                          {process.env.VITE_DB_NAME || 'dropshiply'}
+                          {DB_NAME}
                         </div>
                       </div>
                       <div>
                         <p className="text-sm font-medium mb-1">Користувач</p>
                         <div className="p-2 rounded bg-muted/50">
-                          {process.env.VITE_DB_USER || 'dropshiply_user'}
+                          {DB_USER}
                         </div>
                       </div>
                     </div>

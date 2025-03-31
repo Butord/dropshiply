@@ -18,11 +18,11 @@ export const createPool = () => {
   // Only create pool in Node.js environment
   if (typeof window === 'undefined' && mysql) {
     return mysql.createPool({
-      host: process.env.VITE_DB_HOST || 'localhost',
-      port: Number(process.env.VITE_DB_PORT) || 3306,
-      user: process.env.VITE_DB_USER || 'dropshiply_user',
-      password: process.env.VITE_DB_PASSWORD || 'dropshiply_password',
-      database: process.env.VITE_DB_NAME || 'dropshiply',
+      host: import.meta.env.VITE_DB_HOST || 'localhost',
+      port: Number(import.meta.env.VITE_DB_PORT) || 3306,
+      user: import.meta.env.VITE_DB_USER || 'dropshiply_user',
+      password: import.meta.env.VITE_DB_PASSWORD || 'dropshiply_password',
+      database: import.meta.env.VITE_DB_NAME || 'dropshiply',
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
