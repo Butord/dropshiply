@@ -144,6 +144,21 @@ export interface EmailSettings {
       pass: string;
     }
   };
+  formSubmitActivated?: boolean;
+}
+
+// Новий інтерфейс для налаштувань Telegram
+export interface TelegramSettings {
+  enabled: boolean;
+  botToken: string;
+  chatId: string;
+  messageTemplate: string;
+}
+
+// Інтерфейс для всіх налаштувань сповіщень
+export interface NotificationSettings {
+  email: EmailSettings;
+  telegram: TelegramSettings;
 }
 
 // Updating the OrderNotification interface to match how we're using it
