@@ -13,20 +13,24 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DownloadIcon, Search, Filter, Printer, ExternalLink, FileText, PlusCircle } from "lucide-react";
+import { DownloadIcon, Search, Filter, Printer, ExternalLink, FileText, PlusCircle, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AnimatedSection from "@/components/ui/AnimatedSection";
+import { Order } from "@/lib/types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const OrderManagement = () => {
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [exportOpen, setExportOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateRange, setDateRange] = useState<"all" | "today" | "week" | "month" | "custom">("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderDetailOpen, setOrderDetailOpen] = useState(false);
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -46,6 +50,11 @@ const OrderManagement = () => {
     
     return true;
   });
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setOrderDetailOpen(true);
+  };
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -302,8 +311,8 @@ const OrderManagement = () => {
                       </div>
                       <div className="p-4">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="h-4 w-4 mr-1" />
+                          <Button variant="outline" size="sm" onClick={() => handleViewOrder(order)}>
+                            <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
                           <Button variant="outline" size="sm">
@@ -323,6 +332,132 @@ const OrderManagement = () => {
           </AnimatedSection>
         </main>
       </div>
+      
+      {/* Order detail dialog */}
+      <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order {selectedOrder?.orderNumber}</DialogTitle>
+            <DialogDescription>
+              Created on {selectedOrder && formatDate(selectedOrder.createdAt)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Customer Information</h3>
+                  <div className="bg-muted/50 p-4 rounded-md">
+                    <p className="font-medium">{selectedOrder.customer.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedOrder.customer.email}</p>
+                    {selectedOrder.customer.phone && (
+                      <p className="text-sm text-muted-foreground">{selectedOrder.customer.phone}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Order Status</h3>
+                  <div className="bg-muted/50 p-4 rounded-md">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm">Fulfillment:</span>
+                      <Badge variant="outline" className={getStatusColor(selectedOrder.fulfillmentStatus)}>
+                        {selectedOrder.fulfillmentStatus.charAt(0).toUpperCase() + selectedOrder.fulfillmentStatus.slice(1)}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Payment:</span>
+                      <Badge variant="outline" className={getPaymentStatusColor(selectedOrder.paymentStatus)}>
+                        {selectedOrder.paymentStatus.charAt(0).toUpperCase() + selectedOrder.paymentStatus.slice(1)}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium mb-2">Shipping Address</h3>
+                <div className="bg-muted/50 p-4 rounded-md">
+                  <p>{selectedOrder.shippingAddress.street}</p>
+                  <p>
+                    {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.postalCode}
+                  </p>
+                  <p>{selectedOrder.shippingAddress.country}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium mb-2">Products</h3>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedOrder.products.map((product, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{product.name}</TableCell>
+                          <TableCell className="text-right">{product.quantity}</TableCell>
+                          <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">${product.total.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+              
+              <div className="bg-muted/50 p-4 rounded-md space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>${selectedOrder.tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>${selectedOrder.shipping.toFixed(2)}</span>
+                </div>
+                {selectedOrder.discount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Discount</span>
+                    <span>-${selectedOrder.discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-medium text-lg pt-2 border-t">
+                  <span>Total</span>
+                  <span>${selectedOrder.total.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              {selectedOrder.notes && (
+                <div>
+                  <h3 className="text-sm font-medium mb-2">Notes</h3>
+                  <div className="bg-muted/50 p-4 rounded-md">
+                    <p className="text-sm">{selectedOrder.notes}</p>
+                  </div>
+                </div>
+              )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOrderDetailOpen(false)}>Close</Button>
+                <Button variant="outline">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Print Order
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
