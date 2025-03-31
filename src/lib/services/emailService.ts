@@ -109,8 +109,10 @@ export const sendEmailViaFormSubmit = async (
     formData.append('message', content);
     formData.append('_template', 'box');
     
-    // Замініть на ваш активований email для formsubmit.co
-    const response = await fetch(`https://formsubmit.co/${settings.senderEmail}`, {
+    // Формуємо URL для FormSubmit з активованою електронною адресою
+    const formSubmitUrl = `https://formsubmit.co/${settings.senderEmail}`;
+    
+    const response = await fetch(formSubmitUrl, {
       method: 'POST',
       body: formData,
       headers: {

@@ -1,4 +1,3 @@
-
 import { EmailSettings, OrderNotification } from '../types';
 import { sendOrderConfirmationEmail, sendEmailViaFormSubmit } from './emailService';
 
@@ -6,7 +5,7 @@ import { sendOrderConfirmationEmail, sendEmailViaFormSubmit } from './emailServi
 // В реальній програмі ці дані були б збережені в базі даних
 let emailSettings: EmailSettings = {
   enabled: true,
-  senderEmail: 'notify@yourstore.com',
+  senderEmail: 'notify@yourstore.com', // Замініть на вашу активовану пошту у FormSubmit
   senderName: 'Ваш Магазин',
   subject: 'Ваше замовлення #{{orderNumber}} було успішно оформлено',
   template: `Шановний(а) {{name}},
@@ -48,7 +47,7 @@ export const sendOrderNotification = async (notification: OrderNotification): Pr
     return false;
   }
   
-  // Використовуємо EmailJS (потребує реєстрації)
+  // Закоментовано EmailJS варіант
   // return await sendOrderConfirmationEmail(
   //   notification,
   //   emailSettings,
@@ -56,7 +55,7 @@ export const sendOrderNotification = async (notification: OrderNotification): Pr
   //   EMAIL_JS_TEMPLATE_ID
   // );
   
-  // Використовуємо безкоштовний сервіс formsubmit.co
+  // Використовуємо FormSubmit (безкоштовний сервіс)
   return await sendEmailViaFormSubmit(notification, emailSettings);
 };
 
@@ -70,4 +69,3 @@ export const generateOrderNumber = (): string => {
   
   return `ORD-${year}${month}${day}-${random}`;
 };
-
