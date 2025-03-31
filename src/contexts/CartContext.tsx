@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ interface CartContextType {
   clearCart: () => void;
   getCartCount: () => number;
   getTotal: () => number;
+  subtotal: number; // Added subtotal property
   isLoading: boolean;
   syncWithDatabase: () => Promise<void>;
 }
@@ -28,6 +30,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  
+  // Calculate subtotal from items
+  const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
   
   useEffect(() => {
     const loadCart = async () => {
@@ -136,6 +141,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearCart,
         getCartCount,
         getTotal,
+        subtotal, // Provide the subtotal value
         isLoading,
         syncWithDatabase
       }}

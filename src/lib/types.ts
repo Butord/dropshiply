@@ -128,7 +128,7 @@ export interface Customer {
   status: 'active' | 'inactive';
 }
 
-// Нові інтерфейси для налаштувань повідомлень
+// Інтерфейси для налаштувань повідомлень
 export interface EmailSettings {
   enabled: boolean;
   senderEmail: string;
@@ -146,9 +146,10 @@ export interface EmailSettings {
   };
 }
 
+// Updating the OrderNotification interface to match how we're using it
 export interface OrderNotification {
-  orderId: string;
   orderNumber: string;
+  orderId?: string; // Making orderId optional
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
@@ -161,4 +162,3 @@ export interface OrderNotification {
     price: number;
   }[];
 }
-
