@@ -74,10 +74,7 @@ export const sendOrderConfirmationEmail = async (
 };
 
 /**
- * Альтернативний метод відправки листів через веб-API (безкоштовний спосіб)
- * 
- * Примітка: Цей метод використовує сторонній сервіс formsubmit.co
- * Для використання необхідно спочатку активувати email, надіславши форму вручну
+ * Відправка email через FormSubmit.co API
  */
 export const sendEmailViaFormSubmit = async (
   notification: OrderNotification,
@@ -102,15 +99,27 @@ export const sendEmailViaFormSubmit = async (
     const content = prepareTemplate(settings.template, variables);
     const subject = prepareTemplate(settings.subject, variables);
     
+    // Перевірка налаштувань FormSubmit
+    if (!settings.senderEmail || !settings.formSubmitActivated) {
+      console.error('FormSubmit не активовано або відсутня email адреса відправника');
+      return false;
+    }
+    
+    console.log(`Відправляємо повідомлення через FormSubmit. Email відправника: ${settings.senderEmail}`);
+    console.log(`Отримувач: ${notification.customerEmail}`);
+    
     // Використання formsubmit.co API
     const formData = new FormData();
     formData.append('email', notification.customerEmail);
     formData.append('_subject', subject);
     formData.append('message', content);
     formData.append('_template', 'box');
+    formData.append('_captcha', 'false'); // Вимикаємо капчу
     
     // Формуємо URL для FormSubmit з активованою електронною адресою
     const formSubmitUrl = `https://formsubmit.co/${settings.senderEmail}`;
+    
+    console.log(`Надсилаємо запит на: ${formSubmitUrl}`);
     
     const response = await fetch(formSubmitUrl, {
       method: 'POST',
@@ -121,15 +130,59 @@ export const sendEmailViaFormSubmit = async (
     });
     
     if (response.ok) {
+      const result = await response.json();
+      console.log('Відповідь від formsubmit.co:', result);
       console.log('Лист відправлено через formsubmit.co');
       return true;
     } else {
-      const result = await response.json();
-      console.error('Помилка відправки через formsubmit.co:', result);
+      const errorText = await response.text();
+      console.error('Помилка відправки через formsubmit.co. Статус:', response.status);
+      console.error('Текст помилки:', errorText);
       return false;
     }
   } catch (error) {
     console.error('Помилка відправки email через formsubmit.co:', error);
+    return false;
+  }
+};
+
+/**
+ * Пряма перевірка активації FormSubmit
+ * FormSubmit вимагає спочатку надіслати форму один раз для активації
+ */
+export const verifyFormSubmitActivation = async (email: string): Promise<boolean> => {
+  try {
+    const testFormData = new FormData();
+    testFormData.append('email', email); // Відправляємо на той самий email
+    testFormData.append('_subject', 'FormSubmit Activation Test');
+    testFormData.append('message', 'This is a test message to activate FormSubmit for your email');
+    testFormData.append('_template', 'box');
+    testFormData.append('_captcha', 'false');
+    
+    // URL для FormSubmit
+    const formSubmitUrl = `https://formsubmit.co/${email}`;
+    
+    console.log(`Перевірка активації FormSubmit для ${email}`);
+    console.log(`Надсилаємо тестовий запит на: ${formSubmitUrl}`);
+    
+    const response = await fetch(formSubmitUrl, {
+      method: 'POST',
+      body: testFormData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      console.log('FormSubmit активовано успішно:', await response.json());
+      return true;
+    } else {
+      console.error('Помилка активації FormSubmit. Статус:', response.status);
+      console.error('Текст помилки:', await response.text());
+      return false;
+    }
+  } catch (error) {
+    console.error('Помилка перевірки активації FormSubmit:', error);
     return false;
   }
 };

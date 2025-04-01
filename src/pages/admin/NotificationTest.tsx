@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Mail, MessageSquare, Send, Settings } from "lucide-react";
+import { Loader2, Mail, MessageSquare, Send, Settings, Info, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { 
   getEmailSettings, 
@@ -20,7 +20,7 @@ import {
   generateOrderNumber,
   activateFormSubmit
 } from "@/lib/services/notificationService";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const testNotificationSchema = z.object({
   email: z.string().email({ message: "Введіть коректну email адресу" }),
@@ -53,6 +53,9 @@ const NotificationTest = () => {
 
   // Переключення між вкладками тестування і налаштувань
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Показувати детальну інформацію про FormSubmit
+  const [showFormSubmitInfo, setShowFormSubmitInfo] = useState(false);
 
   useEffect(() => {
     // Оновлюємо налаштування при кожному перемиканні вкладок
@@ -114,6 +117,17 @@ const NotificationTest = () => {
     setIsLoading(true);
     
     try {
+      // Перевіряємо чи активовано FormSubmit
+      if (!emailSettings.formSubmitActivated) {
+        toast({
+          title: "FormSubmit не активовано",
+          description: "Перейдіть до вкладки Налаштування для активації FormSubmit",
+          variant: "warning",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const testNotification = createTestNotification(data);
       const success = await sendOrderNotification(testNotification);
       
@@ -125,7 +139,7 @@ const NotificationTest = () => {
       } else {
         toast({
           title: "Помилка відправки",
-          description: "Не вдалося відправити тестове повідомлення. Перевірте налаштування пошти.",
+          description: "Не вдалося відправити тестове повідомлення. Перевірте налаштування пошти та консоль для деталей.",
           variant: "destructive",
         });
       }
@@ -167,7 +181,7 @@ const NotificationTest = () => {
       } else {
         toast({
           title: "Помилка відправки",
-          description: "Не вдалося відправити тестове повідомлення в Telegram. Перевірте налаштування.",
+          description: "Не вдалося відправити тестове повідомлення в Telegram. Перевірте налаштування та консоль для деталей.",
           variant: "destructive",
         });
       }
@@ -200,11 +214,12 @@ const NotificationTest = () => {
         toast({
           title: "FormSubmit активовано",
           description: `Email ${data.email} був успішно активований для FormSubmit.`,
+          variant: "success",
         });
       } else {
         toast({
           title: "Помилка активації",
-          description: "Не вдалося активувати FormSubmit. Спробуйте знову.",
+          description: "Не вдалося активувати FormSubmit. Перевірте консоль для деталей.",
           variant: "destructive",
         });
       }
@@ -235,6 +250,7 @@ const NotificationTest = () => {
       toast({
         title: "Налаштування Telegram збережено",
         description: "Параметри бота Telegram були успішно збережені.",
+        variant: "success",
       });
     } catch (error) {
       console.error("Помилка при збереженні налаштувань Telegram:", error);
@@ -324,8 +340,19 @@ const NotificationTest = () => {
                               
                               {!emailSettings.formSubmitActivated && (
                                 <Alert className="mt-3" variant="warning">
+                                  <AlertTriangle className="h-4 w-4" />
+                                  <AlertTitle>FormSubmit не активовано</AlertTitle>
                                   <AlertDescription>
-                                    FormSubmit не активовано. Перейдіть до вкладки Налаштування, щоб активувати.
+                                    Перейдіть до вкладки Налаштування, щоб активувати FormSubmit для відправки електронних листів.
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                              
+                              {emailSettings.formSubmitActivated && (
+                                <Alert className="mt-3" variant="info">
+                                  <Info className="h-4 w-4" />
+                                  <AlertDescription>
+                                    FormSubmit активовано для адреси {emailSettings.senderEmail}. Ви можете тестувати відправку.
                                   </AlertDescription>
                                 </Alert>
                               )}
@@ -394,8 +421,19 @@ const NotificationTest = () => {
                               
                               {(!telegramSettings.enabled || !telegramSettings.botToken || !telegramSettings.chatId) && (
                                 <Alert className="mt-3" variant="warning">
+                                  <AlertTriangle className="h-4 w-4" />
+                                  <AlertTitle>Telegram не налаштовано</AlertTitle>
                                   <AlertDescription>
-                                    Telegram не налаштовано повністю. Перейдіть до вкладки Налаштування, щоб налаштувати.
+                                    Перейдіть до вкладки Налаштування, щоб налаштувати параметри Telegram бота.
+                                  </AlertDescription>
+                                </Alert>
+                              )}
+                              
+                              {telegramSettings.enabled && telegramSettings.botToken && telegramSettings.chatId && (
+                                <Alert className="mt-3" variant="info">
+                                  <Info className="h-4 w-4" />
+                                  <AlertDescription>
+                                    Telegram бот налаштовано. Повідомлення будуть надсилатися до вказаного чату/групи.
                                   </AlertDescription>
                                 </Alert>
                               )}
@@ -483,14 +521,33 @@ const NotificationTest = () => {
                     <TabsContent value="formsubmit">
                       <div className="space-y-6">
                         <div className="bg-muted p-4 rounded-md">
-                          <h3 className="font-medium mb-2">Про FormSubmit</h3>
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-medium">Про FormSubmit</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setShowFormSubmitInfo(!showFormSubmitInfo)}>
+                              {showFormSubmitInfo ? "Приховати деталі" : "Показати деталі"}
+                            </Button>
+                          </div>
+                          
                           <p className="text-sm text-muted-foreground mb-2">
                             FormSubmit - це безкоштовний сервіс для відправки форм через email без необхідності
-                            налаштування серверної частини. Для використання з нашим сервісом необхідно
-                            активувати ваш email.
+                            налаштування серверної частини.
                           </p>
+                          
+                          {showFormSubmitInfo && (
+                            <Alert variant="info" className="mt-3 mb-3">
+                              <Info className="h-4 w-4" />
+                              <AlertTitle>Як працює FormSubmit?</AlertTitle>
+                              <AlertDescription className="space-y-2">
+                                <p>1. Коли ви активуєте FormSubmit для вашої email адреси, сервіс надсилає підтвердження на цю адресу.</p>
+                                <p>2. Після активації всі форми, налаштовані з цією адресою, будуть автоматично переспрямовувати дані на ваш email.</p>
+                                <p>3. Перший тестовий лист може потрапити в спам, перевірте папку спаму.</p>
+                                <p>4. Переконайтеся, що ви використовуєте робочу email адресу, до якої маєте доступ.</p>
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                          
                           <p className="text-sm text-muted-foreground">
-                            Після активації ви зможете відправляти сповіщення через FormSubmit.
+                            Для використання FormSubmit необхідно вказати email адресу відправника та активувати її.
                           </p>
                         </div>
                         
@@ -503,7 +560,7 @@ const NotificationTest = () => {
                                 <FormItem>
                                   <FormLabel>Email для FormSubmit</FormLabel>
                                   <FormDescription>
-                                    Вкажіть email, з якого будуть відправлятися сповіщення
+                                    Вкажіть email, з якого будуть відправлятися сповіщення. Переконайтеся, що ви маєте доступ до цієї скриньки.
                                   </FormDescription>
                                   <FormControl>
                                     <Input placeholder="sender@yourstore.com" {...field} />
@@ -528,8 +585,22 @@ const NotificationTest = () => {
                         
                         {emailSettings.formSubmitActivated && (
                           <Alert variant="success" className="mt-4">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertTitle>FormSubmit активовано</AlertTitle>
                             <AlertDescription>
-                              FormSubmit успішно активовано для email: {emailSettings.senderEmail}
+                              FormSubmit успішно активовано для email: {emailSettings.senderEmail}. 
+                              Ви можете перейти до вкладки тестування, щоб відправити тестове повідомлення.
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
+                        {!emailSettings.formSubmitActivated && (
+                          <Alert variant="warning" className="mt-4">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>FormSubmit не активовано</AlertTitle>
+                            <AlertDescription>
+                              FormSubmit ще не активовано. Натисніть кнопку "Активувати FormSubmit" вище.
+                              Перевірте папку зі спамом, якщо не отримуєте листів після активації.
                             </AlertDescription>
                           </Alert>
                         )}
@@ -544,11 +615,21 @@ const NotificationTest = () => {
                             Для відправки сповіщень через Telegram вам потрібно створити бота за допомогою
                             BotFather та отримати токен бота та ID чату, куди будуть відправлятися повідомлення.
                           </p>
+                          <Alert variant="info" className="mt-3 mb-3">
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Інструкція з налаштування</AlertTitle>
+                            <AlertDescription className="space-y-2">
+                              <p>1. Відкрийте Telegram і знайдіть @BotFather.</p>
+                              <p>2. Напишіть /newbot і виконайте всі кроки.</p>
+                              <p>3. Скопіюйте отриманий токен бота.</p>
+                              <p>4. Створіть групу або канал і додайте вашого бота туди.</p>
+                              <p>5. Відправте будь-яке повідомлення в групу.</p>
+                              <p>6. Відкрийте в браузері: https://api.telegram.org/bot[ВАШ_ТОКЕН]/getUpdates</p>
+                              <p>7. Знайдіть "chat":{"id":[ЧИСЛО]} - це і є потрібний Chat ID.</p>
+                            </AlertDescription>
+                          </Alert>
                           <p className="text-sm text-muted-foreground">
-                            Інструкція: 1) Відкрийте Telegram і знайдіть @BotFather. 2) Напишіть /newbot і 
-                            виконайте всі кроки. 3) Скопіюйте отриманий токен бота. 4) Створіть групу або канал
-                            і додайте вашого бота туди. 5) Знайдіть ID чату, відправивши повідомлення в групу і
-                            перейшовши за адресою https://api.telegram.org/bot{'{YOUR_BOT_TOKEN}'}/getUpdates
+                            Увага: Повідомлення надсилаються в чат/групу з вказаним Chat ID, а не на особистий номер телефону!
                           </p>
                         </div>
                         
@@ -603,8 +684,11 @@ const NotificationTest = () => {
                         
                         {telegramSettings.enabled && telegramSettings.botToken && telegramSettings.chatId && (
                           <Alert variant="success" className="mt-4">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertTitle>Telegram налаштовано</AlertTitle>
                             <AlertDescription>
-                              Telegram налаштовано успішно.
+                              Telegram налаштовано успішно. Ви можете перейти до вкладки тестування, 
+                              щоб відправити тестове повідомлення.
                             </AlertDescription>
                           </Alert>
                         )}

@@ -1,5 +1,6 @@
+
 import { EmailSettings, OrderNotification, TelegramSettings } from '../types';
-import { sendOrderConfirmationEmail, sendEmailViaFormSubmit } from './emailService';
+import { sendOrderConfirmationEmail, sendEmailViaFormSubmit, verifyFormSubmitActivation } from './emailService';
 
 // Тут зберігаємо поточні налаштування повідомлень
 // В реальній програмі ці дані були б збережені в базі даних
@@ -57,6 +58,7 @@ export const getEmailSettings = (): EmailSettings => {
 // Оновлення налаштувань пошти
 export const updateEmailSettings = (settings: Partial<EmailSettings>): void => {
   emailSettings = { ...emailSettings, ...settings };
+  console.log('Оновлено налаштування email:', emailSettings);
 };
 
 // Отримання налаштувань Telegram
@@ -67,20 +69,29 @@ export const getTelegramSettings = (): TelegramSettings => {
 // Оновлення налаштувань Telegram
 export const updateTelegramSettings = (settings: Partial<TelegramSettings>): void => {
   telegramSettings = { ...telegramSettings, ...settings };
+  console.log('Оновлено налаштування Telegram:', telegramSettings);
 };
 
 // Активація FormSubmit
 export const activateFormSubmit = async (email: string): Promise<boolean> => {
   try {
-    // В реальному додатку тут було б відправлення тестового листа
-    // для активації email на formsubmit.co
-    console.log(`Відправка активаційного листа на ${email}`);
+    console.log(`Спроба активації FormSubmit для email: ${email}`);
     
-    // Імітуємо успішну активацію
-    emailSettings.formSubmitActivated = true;
-    emailSettings.senderEmail = email;
+    // Перевіряємо активацію через реальну відправку
+    const activationResult = await verifyFormSubmitActivation(email);
     
-    return true;
+    if (activationResult) {
+      console.log(`FormSubmit успішно активовано для ${email}`);
+      
+      // Оновлюємо налаштування
+      emailSettings.formSubmitActivated = true;
+      emailSettings.senderEmail = email;
+      
+      return true;
+    } else {
+      console.error(`Не вдалося активувати FormSubmit для ${email}`);
+      return false;
+    }
   } catch (error) {
     console.error('Помилка активації FormSubmit:', error);
     return false;
@@ -119,6 +130,10 @@ export const sendTelegramNotification = async (notification: OrderNotification):
       messageText = messageText.replace(regex, String(value));
     });
     
+    console.log('Відправляємо повідомлення через Telegram Bot API');
+    console.log(`Bot Token: ${telegramSettings.botToken.slice(0, 5)}...`);
+    console.log(`Chat ID: ${telegramSettings.chatId}`);
+    
     // Відправка повідомлення через Telegram Bot API
     const telegramUrl = `https://api.telegram.org/bot${telegramSettings.botToken}/sendMessage`;
     
@@ -135,7 +150,8 @@ export const sendTelegramNotification = async (notification: OrderNotification):
     });
     
     if (response.ok) {
-      console.log('Повідомлення успішно відправлено в Telegram');
+      const result = await response.json();
+      console.log('Повідомлення успішно відправлено в Telegram:', result);
       return true;
     } else {
       const result = await response.json();
@@ -150,22 +166,38 @@ export const sendTelegramNotification = async (notification: OrderNotification):
 
 // Метод для відправки сповіщення про замовлення
 export const sendOrderNotification = async (notification: OrderNotification): Promise<boolean> => {
-  let emailSent = true;
-  let telegramSent = true;
+  console.log('Відправляємо сповіщення про замовлення:', notification);
+  console.log('Поточні налаштування email:', emailSettings);
+  console.log('Поточні налаштування Telegram:', telegramSettings);
+  
+  let emailSent = false;
+  let telegramSent = false;
   
   // Відправка email
   if (emailSettings.enabled) {
+    console.log('Спроба відправки email через FormSubmit');
+    
+    if (!emailSettings.formSubmitActivated) {
+      console.warn('FormSubmit не активовано! Перевірте налаштування в адмін-панелі.');
+    }
+    
     // Використовуємо FormSubmit (безкоштовний сервіс)
     emailSent = await sendEmailViaFormSubmit(notification, emailSettings);
+    console.log('Результат відправки email:', emailSent ? 'Успішно' : 'Невдало');
   }
   
   // Відправка Telegram
   if (telegramSettings.enabled) {
+    console.log('Спроба відправки повідомлення в Telegram');
     telegramSent = await sendTelegramNotification(notification);
+    console.log('Результат відправки в Telegram:', telegramSent ? 'Успішно' : 'Невдало');
   }
   
   // Повертаємо true, якщо хоча б один канал спрацював
-  return emailSent || telegramSent;
+  const result = emailSent || telegramSent;
+  console.log('Загальний результат відправки сповіщень:', result ? 'Успішно' : 'Невдало');
+  
+  return result;
 };
 
 // Генерація унікального номера замовлення
