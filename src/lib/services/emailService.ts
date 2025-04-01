@@ -130,10 +130,22 @@ export const sendEmailViaFormSubmit = async (
     });
     
     if (response.ok) {
-      const result = await response.json();
-      console.log('Відповідь від formsubmit.co:', result);
-      console.log('Лист відправлено через formsubmit.co');
-      return true;
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+          console.log('Відповідь від formsubmit.co:', result);
+        } else {
+          console.log('Отримано не-JSON відповідь від formsubmit.co');
+          const text = await response.text();
+          console.log('Відповідь:', text.substring(0, 150) + '...');
+        }
+        console.log('Лист відправлено через formsubmit.co');
+        return true;
+      } catch (parseError) {
+        console.error('Помилка розбору відповіді:', parseError);
+        return response.ok; // Повертаємо true, якщо статус відповіді був успішним
+      }
     } else {
       const errorText = await response.text();
       console.error('Помилка відправки через formsubmit.co. Статус:', response.status);
@@ -174,11 +186,37 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
     });
     
     if (response.ok) {
-      console.log('FormSubmit активовано успішно:', await response.json());
-      return true;
+      try {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+          console.log('FormSubmit активовано успішно:', result);
+        } else {
+          // Якщо відповідь не JSON, це все одно може бути успішно
+          const text = await response.text();
+          console.log('Отримано не-JSON відповідь від formsubmit.co');
+          console.log('Текст відповіді:', text.substring(0, 150) + '...');
+          
+          // Перевіряємо, чи містить відповідь маркери успіху
+          if (text.includes('success') || text.includes('thank') || text.includes('confirmation')) {
+            console.log('Відповідь містить маркери успіху');
+          }
+        }
+        return true; // Якщо статус 200, вважаємо успішним
+      } catch (parseError) {
+        console.log('Помилка розбору JSON, але статус відповіді успішний:', parseError);
+        return true; // Якщо статус 200, навіть якщо не можемо розібрати JSON
+      }
     } else {
       console.error('Помилка активації FormSubmit. Статус:', response.status);
-      console.error('Текст помилки:', await response.text());
+      
+      try {
+        const errorText = await response.text();
+        console.error('Текст помилки:', errorText.substring(0, 150) + '...');
+      } catch (e) {
+        console.error('Не вдалося отримати текст помилки');
+      }
+      
       return false;
     }
   } catch (error) {
