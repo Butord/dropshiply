@@ -625,7 +625,7 @@ const NotificationTest = () => {
                               <p>4. Створіть групу або канал і додайте вашого бота туди.</p>
                               <p>5. Відправте будь-яке повідомлення в групу.</p>
                               <p>6. Відкрийте в браузері: https://api.telegram.org/bot[ВАШ_ТОКЕН]/getUpdates</p>
-                              <p>7. Знайдіть "chat":{"id":[ЧИСЛО]} - це і є потрібний Chat ID.</p>
+                              <p>7. Знайдіть "chat":{'"id":'} [ЧИСЛО] - це і є потрібний Chat ID.</p>
                             </AlertDescription>
                           </Alert>
                           <p className="text-sm text-muted-foreground">
