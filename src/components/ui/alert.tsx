@@ -26,19 +26,16 @@ const alertVariants = cva(
   }
 )
 
-// Explicitly define the allowed variants to match what's in the CSS
-type AlertVariant = "default" | "destructive" | "warning" | "success" | "info"
-
-export interface AlertProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "variant"> {
-  variant?: AlertVariant
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "destructive" | "warning" | "success" | "info"
 }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
-  ({ className, variant, ...props }, ref) => (
+  ({ className, variant = "default", ...props }, ref) => (
     <div
       ref={ref}
       role="alert"
-      className={cn(alertVariants({ variant: variant as any }), className)}
+      className={cn(alertVariants({ variant }), className)}
       {...props}
     />
   )
