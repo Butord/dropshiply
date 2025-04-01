@@ -26,7 +26,6 @@ const alertVariants = cva(
   }
 )
 
-// This is the only part that needs to be updated - we make sure the VariantProps include all variant options
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
