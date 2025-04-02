@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, For
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { activateFormSubmit, getEmailSettings } from "@/lib/services/notificationService";
+import { activateFormSubmit, getEmailSettings, updateEmailSettings } from "@/lib/services/notificationService";
 
 const formSubmitSchema = z.object({
   email: z.string().email({ message: "Введіть коректну email адресу" }),
@@ -29,14 +29,24 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
   const formSubmitForm = useForm<FormSubmitFormValues>({
     resolver: zodResolver(formSubmitSchema),
     defaultValues: {
-      email: emailSettings.senderEmail,
+      email: emailSettings.senderEmail || "",
     },
   });
 
   const handleActivateFormSubmit = async (data: FormSubmitFormValues) => {
     setIsActivating(true);
+    
     try {
+      console.log("Початок активації FormSubmit для email:", data.email);
+      
+      // Спочатку оновлюємо налаштування email
+      updateEmailSettings({
+        senderEmail: data.email,
+        enabled: true
+      });
+      
       const success = await activateFormSubmit(data.email);
+      console.log("Результат активації FormSubmit:", success ? "Успішно" : "Невдало");
       
       if (success) {
         toast({
@@ -45,6 +55,10 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
           variant: "success",
         });
         onUpdate();
+        
+        // Додатково перевіряємо налаштування
+        const updatedSettings = getEmailSettings();
+        console.log("Оновлені налаштування після активації:", updatedSettings);
       } else {
         toast({
           title: "Помилка активації",
@@ -85,8 +99,8 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
             <AlertTitle>Як працює FormSubmit?</AlertTitle>
             <AlertDescription className="space-y-2">
               <p>1. Коли ви активуєте FormSubmit для вашої email адреси, сервіс надсилає підтвердження на цю адресу.</p>
-              <p>2. Після активації всі форми, налаштовані з цією адресою, будуть автоматично переспрямовувати дані на ваш email.</p>
-              <p>3. Перший тестовий лист може потрапити в спам, перевірте папку спаму.</p>
+              <p>2. Важливо: перший лист підтвердження може потрапити у <strong>СПАМ</strong>. Обов'язково перевірте!</p>
+              <p>3. Після активації введена адреса електронної пошти буде використовуватися як відправник для нотифікацій.</p>
               <p>4. Переконайтеся, що ви використовуєте робочу email адресу, до якої маєте доступ.</p>
             </AlertDescription>
           </Alert>
@@ -136,6 +150,7 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
           <AlertDescription>
             FormSubmit успішно активовано для email: {emailSettings.senderEmail}. 
             Ви можете перейти до вкладки тестування, щоб відправити тестове повідомлення.
+            <p className="mt-2 text-sm font-medium">Обов'язково перевірте <strong>папку СПАМ</strong>, якщо не бачите повідомлень.</p>
           </AlertDescription>
         </Alert>
       )}

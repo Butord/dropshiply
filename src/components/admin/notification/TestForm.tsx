@@ -56,7 +56,11 @@ export const TestForm = ({ activeTab, emailSettings, telegramSettings }: TestFor
     setIsLoading(true);
     
     try {
+      console.log("Початок тестування email сповіщення");
+      console.log("Поточні налаштування email:", emailSettings);
+      
       if (!emailSettings.formSubmitActivated) {
+        console.warn("FormSubmit не активовано");
         toast({
           title: "FormSubmit не активовано",
           description: "Перейдіть до вкладки Налаштування для активації FormSubmit",
@@ -66,8 +70,23 @@ export const TestForm = ({ activeTab, emailSettings, telegramSettings }: TestFor
         return;
       }
       
+      if (!emailSettings.senderEmail) {
+        console.warn("Email відправника не вказано");
+        toast({
+          title: "Email відправника не вказано",
+          description: "Вкажіть email відправника в налаштуваннях",
+          variant: "warning",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const testNotification = createTestNotification(data);
+      console.log("Створено тестове сповіщення:", testNotification);
+      
+      console.log("Відправляємо тестове сповіщення...");
       const success = await sendOrderNotification(testNotification);
+      console.log("Результат відправки:", success ? "Успішно" : "Невдало");
       
       if (success) {
         toast({
@@ -144,6 +163,9 @@ export const TestForm = ({ activeTab, emailSettings, telegramSettings }: TestFor
   };
 
   const onSubmit = (data: TestNotificationFormValues) => {
+    console.log("Форма відправлена:", data);
+    console.log("Активна вкладка:", activeTab);
+    
     switch (activeTab) {
       case "email":
         handleTestEmail(data);

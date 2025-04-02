@@ -107,6 +107,8 @@ export const sendEmailViaFormSubmit = async (
     
     console.log(`Відправляємо повідомлення через FormSubmit. Email відправника: ${settings.senderEmail}`);
     console.log(`Отримувач: ${notification.customerEmail}`);
+    console.log(`Тема: ${subject}`);
+    console.log(`Вміст повідомлення: ${content.substring(0, 100)}...`);
     
     // Використання formsubmit.co API
     const formData = new FormData();
@@ -116,8 +118,14 @@ export const sendEmailViaFormSubmit = async (
     formData.append('_template', 'box');
     formData.append('_captcha', 'false'); // Вимикаємо капчу
     
-    // Формуємо URL для FormSubmit з активованою електронною адресою
-    const formSubmitUrl = `https://formsubmit.co/${settings.senderEmail}`;
+    // Ключовий момент: використовуємо правильний URL для FormSubmit
+    // Формат має бути: https://formsubmit.co/EMAIL
+    let formSubmitUrl = `https://formsubmit.co/${settings.senderEmail}`;
+    
+    // Переконуємося, що URL не містить протокол двічі
+    if (formSubmitUrl.includes('https://') && formSubmitUrl.indexOf('https://') > 0) {
+      formSubmitUrl = formSubmitUrl.replace(/https:\/\/(.*?)https:\/\//, 'https://');
+    }
     
     console.log(`Надсилаємо запит на: ${formSubmitUrl}`);
     
@@ -138,7 +146,7 @@ export const sendEmailViaFormSubmit = async (
         } else {
           console.log('Отримано не-JSON відповідь від formsubmit.co');
           const text = await response.text();
-          console.log('Відповідь:', text.substring(0, 150) + '...');
+          console.log('Відповідь:', text.substring(0, 300));
         }
         console.log('Лист відправлено через formsubmit.co');
         return true;
@@ -148,7 +156,7 @@ export const sendEmailViaFormSubmit = async (
       }
     } else {
       const errorText = await response.text();
-      console.error('Помилка відправки через formsubmit.co. Статус:', response.status);
+      console.error(`Помилка відправки через formsubmit.co. Статус: ${response.status}`);
       console.error('Текст помилки:', errorText);
       return false;
     }
@@ -164,18 +172,29 @@ export const sendEmailViaFormSubmit = async (
  */
 export const verifyFormSubmitActivation = async (email: string): Promise<boolean> => {
   try {
+    // Переконуємося, що email не порожній
+    if (!email || email.trim() === '') {
+      console.error('Email адреса порожня');
+      return false;
+    }
+    
+    // Формуємо коректний URL для FormSubmit
+    let formSubmitUrl = `https://formsubmit.co/${email}`;
+    
+    // Запобігаємо подвійному https:// в URL
+    if (formSubmitUrl.includes('https://') && formSubmitUrl.indexOf('https://') > 0) {
+      formSubmitUrl = formSubmitUrl.replace(/https:\/\/(.*?)https:\/\//, 'https://');
+    }
+    
+    console.log(`Перевірка активації FormSubmit для ${email}`);
+    console.log(`Надсилаємо тестовий запит на: ${formSubmitUrl}`);
+    
     const testFormData = new FormData();
     testFormData.append('email', email); // Відправляємо на той самий email
     testFormData.append('_subject', 'FormSubmit Activation Test');
     testFormData.append('message', 'This is a test message to activate FormSubmit for your email');
     testFormData.append('_template', 'box');
     testFormData.append('_captcha', 'false');
-    
-    // URL для FormSubmit
-    const formSubmitUrl = `https://formsubmit.co/${email}`;
-    
-    console.log(`Перевірка активації FormSubmit для ${email}`);
-    console.log(`Надсилаємо тестовий запит на: ${formSubmitUrl}`);
     
     const response = await fetch(formSubmitUrl, {
       method: 'POST',
@@ -184,6 +203,8 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
         'Accept': 'application/json'
       }
     });
+    
+    console.log(`Отримано відповідь зі статусом: ${response.status}`);
     
     if (response.ok) {
       try {
@@ -195,7 +216,7 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
           // Якщо відповідь не JSON, це все одно може бути успішно
           const text = await response.text();
           console.log('Отримано не-JSON відповідь від formsubmit.co');
-          console.log('Текст відповіді:', text.substring(0, 150) + '...');
+          console.log('Текст відповіді:', text.substring(0, 300));
           
           // Перевіряємо, чи містить відповідь маркери успіху
           if (text.includes('success') || text.includes('thank') || text.includes('confirmation')) {
@@ -208,11 +229,11 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
         return true; // Якщо статус 200, навіть якщо не можемо розібрати JSON
       }
     } else {
-      console.error('Помилка активації FormSubmit. Статус:', response.status);
+      console.error(`Помилка активації FormSubmit. Статус: ${response.status}`);
       
       try {
         const errorText = await response.text();
-        console.error('Текст помилки:', errorText.substring(0, 150) + '...');
+        console.error('Текст помилки:', errorText.substring(0, 300));
       } catch (e) {
         console.error('Не вдалося отримати текст помилки');
       }
