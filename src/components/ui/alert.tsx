@@ -26,12 +26,11 @@ const alertVariants = cva(
   }
 )
 
-// Визначаємо тип для варіантів Alert, включаючи всі можливі значення
-export type AlertVariant = "default" | "destructive" | "warning" | "success" | "info"
+export type AlertVariant = "default" | "destructive" | "warning" | "success" | "info";
 
 export interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement> {
-    variant?: AlertVariant
+    variant?: AlertVariant;
   }
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
