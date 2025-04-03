@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { generateOrderNumber, sendOrderNotification } from "@/lib/services/notificationService";
+import { sendOrderNotification, generateOrderNumber } from "@/lib/services/notificationService";
 import { EmailInfoDisplay } from "./EmailInfoDisplay";
 import { TelegramInfoDisplay } from "./TelegramInfoDisplay";
 

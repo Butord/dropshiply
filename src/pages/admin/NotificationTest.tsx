@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings } from "lucide-react";
-import { getEmailSettings, getTelegramSettings } from "@/lib/services/notificationService";
+import { getEmailSettings } from "@/lib/services/emailSettingsService";
+import { getTelegramSettings } from "@/lib/services/telegramService";
 import TestForm from "@/components/admin/notification/TestForm";
 import { FormSubmitSettings } from "@/components/admin/notification/FormSubmitSettings";
 import { TelegramSettings } from "@/components/admin/notification/TelegramSettings";
@@ -17,7 +17,6 @@ const NotificationTest = () => {
   const [emailSettings, setEmailSettings] = useState(getEmailSettings());
   const [telegramSettings, setTelegramSettings] = useState(getTelegramSettings());
 
-  // Оновлюємо налаштування при зміні вкладок та при монтуванні компонента
   useEffect(() => {
     const loadSettings = () => {
       setEmailSettings(getEmailSettings());
@@ -30,13 +29,11 @@ const NotificationTest = () => {
 
     loadSettings();
     
-    // Також встановлюємо інтервал для періодичного оновлення налаштувань
     const intervalId = setInterval(loadSettings, 5000);
     
     return () => clearInterval(intervalId);
   }, [activeTab, showSettings]);
 
-  // Функція для примусового оновлення налаштувань
   const refreshSettings = () => {
     console.log("Примусове оновлення налаштувань");
     setEmailSettings(getEmailSettings());
@@ -64,7 +61,6 @@ const NotificationTest = () => {
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-3xl mx-auto">
             {!showSettings ? (
-              // Вкладка тестування
               <Card>
                 <CardHeader>
                   <CardTitle>Тестування сповіщень</CardTitle>
@@ -107,7 +103,6 @@ const NotificationTest = () => {
                 </CardContent>
               </Card>
             ) : (
-              // Вкладка налаштувань
               <Card>
                 <CardHeader>
                   <CardTitle>Налаштування сповіщень</CardTitle>

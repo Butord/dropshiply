@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, For
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { updateTelegramSettings, getTelegramSettings } from "@/lib/services/notificationService";
+import { updateTelegramSettings, getTelegramSettings } from "@/lib/services/telegramService";
 
 const telegramSettingsSchema = z.object({
   botToken: z.string().min(1, { message: "Введіть токен бота" }),
@@ -34,7 +33,6 @@ export const TelegramSettings = ({ telegramSettings, onUpdate }: TelegramSetting
     },
   });
 
-  // Оновлюємо форму при зміні налаштувань
   useEffect(() => {
     telegramForm.setValue("botToken", telegramSettings.botToken || "");
     telegramForm.setValue("chatId", telegramSettings.chatId || "");
@@ -84,7 +82,7 @@ export const TelegramSettings = ({ telegramSettings, onUpdate }: TelegramSetting
           <AlertDescription className="space-y-2">
             <p>1. Відкрийте Telegram і знайдіть @BotFather.</p>
             <p>2. Напишіть /newbot і виконайте всі кроки.</p>
-            <p>3. Скопіюйте отриманий токен бота.</p>
+            <p>3. Ск��піюйте отриманий токен бота.</p>
             <p>4. Створіть групу або канал і додайте вашого бота туди.</p>
             <p>5. Відправте будь-яке повідомлення в групу.</p>
             <p>6. Відкрийте в браузері: https://api.telegram.org/bot[ВАШ_ТОКЕН]/getUpdates</p>

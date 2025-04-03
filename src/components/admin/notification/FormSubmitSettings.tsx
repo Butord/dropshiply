@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormDescription, For
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { activateFormSubmit, getEmailSettings, updateEmailSettings } from "@/lib/services/notificationService";
+import { activateFormSubmit, getEmailSettings, updateEmailSettings } from "@/lib/services/emailSettingsService";
 
 const formSubmitSchema = z.object({
   email: z.string().email({ message: "Введіть коректну email адресу" }),
@@ -26,7 +25,6 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
   const [isActivating, setIsActivating] = useState(false);
   const [showFormSubmitInfo, setShowFormSubmitInfo] = useState(false);
 
-  // Ініціалізуємо форму з актуальними даними
   const formSubmitForm = useForm<FormSubmitFormValues>({
     resolver: zodResolver(formSubmitSchema),
     defaultValues: {
@@ -34,7 +32,6 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
     },
   });
 
-  // Оновлюємо форму при зміні налаштувань
   useEffect(() => {
     formSubmitForm.setValue("email", emailSettings.senderEmail || "");
   }, [emailSettings, formSubmitForm]);
@@ -45,7 +42,6 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
     try {
       console.log("Початок активації FormSubmit для email:", data.email);
       
-      // Спочатку оновлюємо налаштування email
       updateEmailSettings({
         senderEmail: data.email,
         enabled: true
@@ -62,7 +58,6 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
         });
         onUpdate();
         
-        // Додатково перевіряємо налаштування
         const updatedSettings = getEmailSettings();
         console.log("Оновлені налаштування після активації:", updatedSettings);
       } else {
