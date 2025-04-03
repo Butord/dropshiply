@@ -6,13 +6,18 @@ import { prepareTemplate, prepareTemplateVariables } from './emailTemplateServic
  * Формує правильний URL для FormSubmit
  */
 export const getFormSubmitUrl = (email: string): string => {
-  let formSubmitUrl = `https://formsubmit.co/${email}`;
+  // Очистка від можливих зайвих пробілів
+  const cleanEmail = email.trim();
+  
+  // Базовий URL FormSubmit
+  let formSubmitUrl = `https://formsubmit.co/${cleanEmail}`;
   
   // Запобігаємо подвійному https:// в URL
   if (formSubmitUrl.includes('https://') && formSubmitUrl.indexOf('https://') > 0) {
     formSubmitUrl = formSubmitUrl.replace(/https:\/\/(.*?)https:\/\//, 'https://');
   }
   
+  console.log(`formSubmitService: Сформовано URL для FormSubmit: ${formSubmitUrl}`);
   return formSubmitUrl;
 };
 
@@ -24,22 +29,41 @@ export const sendEmailViaFormSubmit = async (
   settings: EmailSettings
 ): Promise<boolean> => {
   try {
+    console.log('formSubmitService: Початок відправки через FormSubmit');
+    
     // Перевірка налаштувань FormSubmit
     if (!settings.senderEmail || !settings.formSubmitActivated) {
-      console.error('FormSubmit не активовано або відсутня email адреса відправника');
+      console.error('formSubmitService: FormSubmit не активовано або відсутня email адреса відправника:', {
+        senderEmail: settings.senderEmail,
+        formSubmitActivated: settings.formSubmitActivated
+      });
+      return false;
+    }
+    
+    // Перевірка наявності email отримувача
+    if (!notification.customerEmail) {
+      console.error('formSubmitService: Відсутня email адреса отримувача');
       return false;
     }
     
     // Підготовка змінних для шаблону
     const variables = prepareTemplateVariables(notification);
     
-    const content = prepareTemplate(settings.template, variables);
-    const subject = prepareTemplate(settings.subject, variables);
+    // Якщо шаблон або тема відсутні, використовуємо значення за замовчуванням
+    const defaultTemplate = "Замовлення {{orderNumber}} прийнято. Дякуємо, {{name}}!<br>Сума замовлення: {{amount}} грн<br>Спосіб оплати: {{paymentMethod}}";
+    const defaultSubject = "Замовлення {{orderNumber}} успішно оформлено";
     
-    console.log(`Відправляємо повідомлення через FormSubmit. Email відправника: ${settings.senderEmail}`);
-    console.log(`Отримувач: ${notification.customerEmail}`);
-    console.log(`Тема: ${subject}`);
-    console.log(`Вміст повідомлення: ${content.substring(0, 100)}...`);
+    const template = settings.template || defaultTemplate;
+    const subjectTemplate = settings.subject || defaultSubject;
+    
+    const content = prepareTemplate(template, variables);
+    const subject = prepareTemplate(subjectTemplate, variables);
+    
+    console.log(`formSubmitService: Підготовлено повідомлення для відправки`);
+    console.log(`formSubmitService: Відправник: ${settings.senderEmail}`);
+    console.log(`formSubmitService: Отримувач: ${notification.customerEmail}`);
+    console.log(`formSubmitService: Тема: ${subject}`);
+    console.log(`formSubmitService: Вміст повідомлення: ${content.substring(0, 100)}...`);
     
     // Використання formsubmit.co API
     const formData = new FormData();
@@ -49,10 +73,13 @@ export const sendEmailViaFormSubmit = async (
     formData.append('_template', 'box');
     formData.append('_captcha', 'false'); // Вимикаємо капчу
     
+    // Зворотна адреса (від кого лист)
+    formData.append('_replyto', settings.senderEmail); 
+    
     // Використовуємо правильний URL для FormSubmit
     const formSubmitUrl = getFormSubmitUrl(settings.senderEmail);
     
-    console.log(`Надсилаємо запит на: ${formSubmitUrl}`);
+    console.log(`formSubmitService: Надсилаємо запит на: ${formSubmitUrl}`);
     
     const response = await fetch(formSubmitUrl, {
       method: 'POST',
@@ -62,31 +89,33 @@ export const sendEmailViaFormSubmit = async (
       }
     });
     
+    console.log(`formSubmitService: Отримано відповідь зі статусом: ${response.status}`);
+    
     if (response.ok) {
       try {
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const result = await response.json();
-          console.log('Відповідь від formsubmit.co:', result);
+          console.log('formSubmitService: Відповідь від formsubmit.co (JSON):', result);
         } else {
-          console.log('Отримано не-JSON відповідь від formsubmit.co');
+          console.log('formSubmitService: Отримано не-JSON відповідь від formsubmit.co');
           const text = await response.text();
-          console.log('Відповідь:', text.substring(0, 300));
+          console.log('formSubmitService: Відповідь (текст):', text.substring(0, 300));
         }
-        console.log('Лист відправлено через formsubmit.co');
+        console.log('formSubmitService: Лист відправлено через formsubmit.co успішно');
         return true;
       } catch (parseError) {
-        console.error('Помилка розбору відповіді:', parseError);
+        console.error('formSubmitService: Помилка розбору відповіді:', parseError);
         return response.ok; // Повертаємо true, якщо статус відповіді був успішним
       }
     } else {
       const errorText = await response.text();
-      console.error(`Помилка відправки через formsubmit.co. Статус: ${response.status}`);
-      console.error('Текст помилки:', errorText);
+      console.error(`formSubmitService: Помилка відправки через formsubmit.co. Статус: ${response.status}`);
+      console.error('formSubmitService: Текст помилки:', errorText);
       return false;
     }
   } catch (error) {
-    console.error('Помилка відправки email через formsubmit.co:', error);
+    console.error('formSubmitService: Помилка відправки email через formsubmit.co:', error);
     return false;
   }
 };
@@ -97,17 +126,18 @@ export const sendEmailViaFormSubmit = async (
  */
 export const verifyFormSubmitActivation = async (email: string): Promise<boolean> => {
   try {
+    console.log(`formSubmitService: Початок перевірки активації FormSubmit для ${email}`);
+    
     // Переконуємося, що email не порожній
     if (!email || email.trim() === '') {
-      console.error('Email адреса порожня');
+      console.error('formSubmitService: Email адреса порожня');
       return false;
     }
     
     // Формуємо коректний URL для FormSubmit
-    const formSubmitUrl = getFormSubmitUrl(email);
+    const formSubmitUrl = getFormSubmitUrl(email.trim());
     
-    console.log(`Перевірка активації FormSubmit для ${email}`);
-    console.log(`Надсилаємо тестовий запит на: ${formSubmitUrl}`);
+    console.log(`formSubmitService: Надсилаємо тестовий запит на: ${formSubmitUrl}`);
     
     const testFormData = new FormData();
     testFormData.append('email', email); // Відправляємо на той самий email
@@ -115,6 +145,7 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
     testFormData.append('message', 'This is a test message to activate FormSubmit for your email');
     testFormData.append('_template', 'box');
     testFormData.append('_captcha', 'false');
+    testFormData.append('_replyto', email); // Зворотна адреса
     
     const response = await fetch(formSubmitUrl, {
       method: 'POST',
@@ -124,44 +155,45 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
       }
     });
     
-    console.log(`Отримано відповідь зі статусом: ${response.status}`);
+    console.log(`formSubmitService: Отримано відповідь зі статусом: ${response.status}`);
     
     if (response.ok) {
       try {
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const result = await response.json();
-          console.log('FormSubmit активовано успішно:', result);
+          console.log('formSubmitService: FormSubmit активовано успішно (JSON):', result);
         } else {
           // Якщо відповідь не JSON, це все одно може бути успішно
           const text = await response.text();
-          console.log('Отримано не-JSON відповідь від formsubmit.co');
-          console.log('Текст відповіді:', text.substring(0, 300));
+          console.log('formSubmitService: Отримано не-JSON відповідь від formsubmit.co');
+          console.log('formSubmitService: Текст відповіді:', text.substring(0, 300));
           
           // Перевіряємо, чи містить відповідь маркери успіху
           if (text.includes('success') || text.includes('thank') || text.includes('confirmation')) {
-            console.log('Відповідь містить маркери успіху');
+            console.log('formSubmitService: Відповідь містить маркери успіху');
           }
         }
+        console.log('formSubmitService: FormSubmit успішно активовано');
         return true; // Якщо статус 200, вважаємо успішним
       } catch (parseError) {
-        console.log('Помилка розбору JSON, але статус відповіді успішний:', parseError);
+        console.log('formSubmitService: Помилка розбору JSON, але статус відповіді успішний:', parseError);
         return true; // Якщо статус 200, навіть якщо не можемо розібрати JSON
       }
     } else {
-      console.error(`Помилка активації FormSubmit. Статус: ${response.status}`);
+      console.error(`formSubmitService: Помилка активації FormSubmit. Статус: ${response.status}`);
       
       try {
         const errorText = await response.text();
-        console.error('Текст помилки:', errorText.substring(0, 300));
+        console.error('formSubmitService: Текст помилки:', errorText.substring(0, 300));
       } catch (e) {
-        console.error('Не вдалося отримати текст помилки');
+        console.error('formSubmitService: Не вдалося отримати текст помилки');
       }
       
       return false;
     }
   } catch (error) {
-    console.error('Помилка перевірки активації FormSubmit:', error);
+    console.error('formSubmitService: Помилка перевірки активації FormSubmit:', error);
     return false;
   }
 };
