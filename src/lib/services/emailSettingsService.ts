@@ -54,7 +54,15 @@ export const activateFormSubmit = async (email: string): Promise<boolean> => {
       
       return true;
     } else {
-      console.error(`Не вдалося активувати FormSubmit для ${email}`);
+      console.log(`FormSubmit потребує підтвердження. Перевірте пошту для активації FormSubmit для ${email}`);
+      
+      // Оновлюємо налаштування, активація в процесі
+      updateEmailSettings({
+        formSubmitActivated: false, // Буде true після підтвердження email
+        senderEmail: email,
+        enabled: true  // Вмикаємо відправку email
+      });
+      
       return false;
     }
   } catch (error) {

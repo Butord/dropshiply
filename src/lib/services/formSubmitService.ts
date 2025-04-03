@@ -75,6 +75,9 @@ export const sendEmailViaFormSubmit = async (
     
     // Зворотна адреса (від кого лист)
     formData.append('_replyto', settings.senderEmail); 
+    // Спеціальні поля FormSubmit для покращення доставки листів
+    formData.append('_cc', settings.senderEmail); // Копія листа на адресу відправника
+    formData.append('_autoresponse', 'Ваше замовлення успішно прийнято!'); // Автовідповідь
     
     // Використовуємо правильний URL для FormSubmit
     const formSubmitUrl = getFormSubmitUrl(settings.senderEmail);
@@ -101,8 +104,18 @@ export const sendEmailViaFormSubmit = async (
           console.log('formSubmitService: Отримано не-JSON відповідь від formsubmit.co');
           const text = await response.text();
           console.log('formSubmitService: Відповідь (текст):', text.substring(0, 300));
+          
+          // Перевіряємо, чи є маркери успіху або помилки в HTML відповіді
+          if (text.includes('Thank you') || text.includes('success') || text.includes('Success')) {
+            console.log('formSubmitService: Лист відправлено через formsubmit.co успішно');
+          } else if (text.includes('confirm') || text.includes('confirm your email') || text.includes('activation')) {
+            console.log('formSubmitService: FormSubmit вимагає підтвердження email. Перевірте свою поштову скриньку і підтвердіть активацію FormSubmit.');
+            return false;
+          }
         }
-        console.log('formSubmitService: Лист відправлено через formsubmit.co успішно');
+        
+        // Повідомляємо про успішну відправку
+        console.log('formSubmitService: Лист відправлено через formsubmit.co');
         return true;
       } catch (parseError) {
         console.error('formSubmitService: Помилка розбору відповіді:', parseError);
@@ -146,6 +159,8 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
     testFormData.append('_template', 'box');
     testFormData.append('_captcha', 'false');
     testFormData.append('_replyto', email); // Зворотна адреса
+    testFormData.append('_cc', email); // Додаємо копію для підвищення шансів доставки
+    testFormData.append('name', 'Test FormSubmit Activation'); // Додаємо ім'я для кращої доставки
     
     const response = await fetch(formSubmitUrl, {
       method: 'POST',
@@ -169,12 +184,17 @@ export const verifyFormSubmitActivation = async (email: string): Promise<boolean
           console.log('formSubmitService: Отримано не-JSON відповідь від formsubmit.co');
           console.log('formSubmitService: Текст відповіді:', text.substring(0, 300));
           
-          // Перевіряємо, чи містить відповідь маркери успіху
-          if (text.includes('success') || text.includes('thank') || text.includes('confirmation')) {
-            console.log('formSubmitService: Відповідь містить маркери успіху');
+          // Перевіряємо, чи містить відповідь маркери успіху або потребує активації
+          if (text.includes('Thank you') || text.includes('success') || text.includes('Success')) {
+            console.log('formSubmitService: FormSubmit успішно активовано');
+          } else if (text.includes('confirm') || text.includes('confirm your email') || text.includes('activation')) {
+            console.log('formSubmitService: FormSubmit вимагає підтвердження email. Перевірте свою поштову скриньку і підтвердіть активацію.');
+            // Повідомляємо користувачу, що потрібно перевірити пошту для активації
+            return false;
           }
         }
-        console.log('formSubmitService: FormSubmit успішно активовано');
+        
+        console.log('formSubmitService: FormSubmit успішно активовано або вже активовано раніше');
         return true; // Якщо статус 200, вважаємо успішним
       } catch (parseError) {
         console.log('formSubmitService: Помилка розбору JSON, але статус відповіді успішний:', parseError);
