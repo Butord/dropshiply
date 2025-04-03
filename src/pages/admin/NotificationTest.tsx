@@ -17,14 +17,28 @@ const NotificationTest = () => {
   const [emailSettings, setEmailSettings] = useState(getEmailSettings());
   const [telegramSettings, setTelegramSettings] = useState(getTelegramSettings());
 
-  // Оновлюємо налаштування при зміні вкладок
+  // Оновлюємо налаштування при зміні вкладок та при монтуванні компонента
   useEffect(() => {
-    setEmailSettings(getEmailSettings());
-    setTelegramSettings(getTelegramSettings());
+    const loadSettings = () => {
+      setEmailSettings(getEmailSettings());
+      setTelegramSettings(getTelegramSettings());
+      console.log("Налаштування завантажено:", {
+        email: getEmailSettings(),
+        telegram: getTelegramSettings()
+      });
+    };
+
+    loadSettings();
+    
+    // Також встановлюємо інтервал для періодичного оновлення налаштувань
+    const intervalId = setInterval(loadSettings, 5000);
+    
+    return () => clearInterval(intervalId);
   }, [activeTab, showSettings]);
 
   // Функція для примусового оновлення налаштувань
   const refreshSettings = () => {
+    console.log("Примусове оновлення налаштувань");
     setEmailSettings(getEmailSettings());
     setTelegramSettings(getTelegramSettings());
   };

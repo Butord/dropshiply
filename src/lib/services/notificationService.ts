@@ -1,14 +1,23 @@
+
 import { EmailSettings, OrderNotification, TelegramSettings } from '../types';
 import { sendOrderConfirmationEmail, sendEmailViaFormSubmit, verifyFormSubmitActivation } from './emailService';
 
-// Тут зберігаємо поточні налаштування повідомлень
-// В реальній програмі ці дані були б збережені в базі даних
-let emailSettings: EmailSettings = {
-  enabled: true,
-  senderEmail: 'notify@yourstore.com',
-  senderName: 'Ваш Магазин',
-  subject: 'Ваше замовлення #{{orderNumber}} було успішно оформлено',
-  template: `Шановний(а) {{name}},
+// Завантаження налаштувань з localStorage або використання значень за замовчуванням
+const getStoredEmailSettings = (): EmailSettings => {
+  const storedSettings = localStorage.getItem('emailSettings');
+  if (storedSettings) {
+    try {
+      return JSON.parse(storedSettings);
+    } catch (error) {
+      console.error('Помилка при завантаженні email налаштувань з localStorage:', error);
+    }
+  }
+  return {
+    enabled: true,
+    senderEmail: 'notify@yourstore.com',
+    senderName: 'Ваш Магазин',
+    subject: 'Ваше замовлення #{{orderNumber}} було успішно оформлено',
+    template: `Шановний(а) {{name}},
 
 Дякуємо за ваше замовлення #{{orderNumber}}.
 
@@ -24,15 +33,24 @@ let emailSettings: EmailSettings = {
 
 З повагою,
 Команда вашого магазину`,
-  formSubmitActivated: false // За замовчуванням не активовано
+    formSubmitActivated: false
+  };
 };
 
-// Налаштування Telegram
-let telegramSettings: TelegramSettings = {
-  enabled: false,
-  botToken: '',
-  chatId: '',
-  messageTemplate: `Нове замовлення #{{orderNumber}}
+const getStoredTelegramSettings = (): TelegramSettings => {
+  const storedSettings = localStorage.getItem('telegramSettings');
+  if (storedSettings) {
+    try {
+      return JSON.parse(storedSettings);
+    } catch (error) {
+      console.error('Помилка при завантаженні Telegram налаштувань з localStorage:', error);
+    }
+  }
+  return {
+    enabled: false,
+    botToken: '',
+    chatId: '',
+    messageTemplate: `Нове замовлення #{{orderNumber}}
   
 Клієнт: {{name}}
 Email: {{email}}
@@ -42,7 +60,12 @@ Email: {{email}}
   
 Сума: {{amount}} грн
 Оплата: {{paymentMethod}}`
+  };
 };
+
+// Ініціалізація з localStorage
+let emailSettings: EmailSettings = getStoredEmailSettings();
+let telegramSettings: TelegramSettings = getStoredTelegramSettings();
 
 // ID сервісу і шаблону для EmailJS (необхідно отримати в особистому кабінеті EmailJS)
 const EMAIL_JS_SERVICE_ID = 'your_service_id'; // Замініть на ваш service ID
@@ -60,6 +83,14 @@ export const updateEmailSettings = (settings: Partial<EmailSettings>): void => {
   console.log("updateEmailSettings - попередні налаштування:", emailSettings);
   emailSettings = { ...emailSettings, ...settings };
   console.log("updateEmailSettings - оновлені налаштування:", emailSettings);
+  
+  // Збереження в localStorage
+  try {
+    localStorage.setItem('emailSettings', JSON.stringify(emailSettings));
+    console.log("Email налаштування збережено в localStorage");
+  } catch (error) {
+    console.error("Помилка при збереженні email налаштувань в localStorage:", error);
+  }
 };
 
 // Отримання налаштувань Telegram
@@ -71,6 +102,14 @@ export const getTelegramSettings = (): TelegramSettings => {
 export const updateTelegramSettings = (settings: Partial<TelegramSettings>): void => {
   telegramSettings = { ...telegramSettings, ...settings };
   console.log('Оновлено налаштування Telegram:', telegramSettings);
+  
+  // Збереження в localStorage
+  try {
+    localStorage.setItem('telegramSettings', JSON.stringify(telegramSettings));
+    console.log("Telegram налаштування збережено в localStorage");
+  } catch (error) {
+    console.error("Помилка при збереженні Telegram налаштувань в localStorage:", error);
+  }
 };
 
 // Активація FormSubmit

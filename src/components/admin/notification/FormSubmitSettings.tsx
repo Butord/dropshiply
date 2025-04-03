@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -26,12 +26,18 @@ export const FormSubmitSettings = ({ emailSettings, onUpdate }: FormSubmitSettin
   const [isActivating, setIsActivating] = useState(false);
   const [showFormSubmitInfo, setShowFormSubmitInfo] = useState(false);
 
+  // Ініціалізуємо форму з актуальними даними
   const formSubmitForm = useForm<FormSubmitFormValues>({
     resolver: zodResolver(formSubmitSchema),
     defaultValues: {
       email: emailSettings.senderEmail || "",
     },
   });
+
+  // Оновлюємо форму при зміні налаштувань
+  useEffect(() => {
+    formSubmitForm.setValue("email", emailSettings.senderEmail || "");
+  }, [emailSettings, formSubmitForm]);
 
   const handleActivateFormSubmit = async (data: FormSubmitFormValues) => {
     setIsActivating(true);

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -34,9 +34,17 @@ export const TelegramSettings = ({ telegramSettings, onUpdate }: TelegramSetting
     },
   });
 
+  // Оновлюємо форму при зміні налаштувань
+  useEffect(() => {
+    telegramForm.setValue("botToken", telegramSettings.botToken || "");
+    telegramForm.setValue("chatId", telegramSettings.chatId || "");
+  }, [telegramSettings, telegramForm]);
+
   const handleSaveTelegramSettings = async (data: TelegramSettingsFormValues) => {
     setIsSavingTelegram(true);
     try {
+      console.log("Збереження налаштувань Telegram:", data);
+      
       updateTelegramSettings({
         botToken: data.botToken,
         chatId: data.chatId,
