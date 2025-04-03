@@ -1,7 +1,7 @@
 
 import { EmailSettings } from '../types';
 import { getStoredEmailSettings, saveEmailSettings } from './settingsService';
-import { verifyFormSubmitActivation } from './emailService';
+import { verifyFormSubmitActivation } from './formSubmitService';
 
 // Ініціалізація з localStorage
 let emailSettings: EmailSettings = getStoredEmailSettings();
