@@ -61,7 +61,7 @@ export class ProductModel {
       console.log('Створення нового товару:', product.name);
       
       // Якщо типи даних не відповідають очікуваним, конвертуємо їх
-      const id = product.id || uuidv4();
+      const id = uuidv4(); // Generate a new ID instead of using product.id
       const now = new Date().toISOString();
       const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
       const compareAtPrice = product.compareAtPrice ? 
