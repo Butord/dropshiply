@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,8 @@ import {
   ShoppingCart, 
   Trash2, 
   Upload, 
-  Users 
+  Users,
+  Wand2
 } from 'lucide-react';
 import { mockXMLSources } from '@/lib/mockData';
 import XMLMappingForm from '@/components/admin/XMLMappingForm';
@@ -43,6 +45,7 @@ const XMLImport = () => {
   const [newSourceName, setNewSourceName] = useState('');
   const [newSourceUrl, setNewSourceUrl] = useState('');
   const [importLoading, setImportLoading] = useState<string | null>(null);
+  const [analyzingXml, setAnalyzingXml] = useState(false);
   
   // Завантаження джерел при відкритті сторінки
   useEffect(() => {
@@ -88,15 +91,11 @@ const XMLImport = () => {
         name: newSourceName,
         url: newSourceUrl,
         mappingSchema: {
-          rootElement: 'yml_catalog',
-          productElement: 'offer',
+          rootElement: '',
+          productElement: '',
           fieldMappings: {
-            name: 'name',
-            price: 'price',
-            description: 'description',
-            images: 'picture',
-            categoryIdToName: 'categoryId',
-            sku: 'vendorCode',
+            name: '',
+            price: '',
           },
         },
       };
@@ -267,8 +266,80 @@ const XMLImport = () => {
     setMappingDialogOpen(true);
   };
   
+  const handleAnalyzeXml = async (url: string) => {
+    setAnalyzingXml(true);
+    try {
+      if (typeof window !== 'undefined') {
+        // Імітація аналізу в браузері (мок)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        return {
+          success: true,
+          structure: {
+            name: "yml_catalog",
+            children: [
+              {
+                name: "shop",
+                children: [
+                  { name: "offers", count: 1, children: [
+                    { name: "offer", count: 15 }
+                  ] }
+                ]
+              }
+            ]
+          },
+          suggestions: {
+            schema: {
+              rootElement: "yml_catalog/shop",
+              productElement: "offer",
+              fieldMappings: {
+                name: "name",
+                price: "price",
+                description: "description",
+                images: "picture",
+                sku: "vendorCode",
+                categoryIdToName: "categoryId"
+              }
+            },
+            confidence: 92,
+            productCount: 15,
+            sampleData: [
+              {
+                name: "Смартфон Apple iPhone 13",
+                price: "32999",
+                description: "Відмінний смартфон з процесором A15 Bionic",
+                sku: "AP-I13-128"
+              },
+              {
+                name: "Ноутбук Dell XPS 13",
+                price: "45999",
+                description: "Сучасний ультрабук з екраном InfinityEdge",
+                sku: "DEL-XPS13-16"
+              }
+            ]
+          }
+        };
+      } else {
+        // Реальний аналіз через модель
+        return await XMLSourceModel.analyzeXmlStructure(url);
+      }
+    } catch (error) {
+      console.error('Помилка аналізу XML:', error);
+      return { 
+        success: false, 
+        errorMessage: error instanceof Error ? error.message : "Помилка аналізу XML" 
+      };
+    } finally {
+      setAnalyzingXml(false);
+    }
+  };
+  
   const selectedMapping = selectedSource 
     ? sources.find(s => s.id === selectedSource)?.mappingSchema 
+    : undefined;
+    
+  const selectedSourceUrl = selectedSource
+    ? sources.find(s => s.id === selectedSource)?.url
     : undefined;
 
   return (
@@ -435,7 +506,7 @@ const XMLImport = () => {
                                       size="sm"
                                       onClick={() => handleEditMapping(source.id)}
                                     >
-                                      <Cog className="h-4 w-4 mr-1" />
+                                      <Wand2 className="h-4 w-4 mr-1" />
                                       Map
                                     </Button>
                                     <Button 
@@ -633,6 +704,8 @@ const XMLImport = () => {
               initialMapping={selectedMapping}
               onSave={handleSaveMapping}
               onCancel={() => setMappingDialogOpen(false)}
+              onAnalyze={handleAnalyzeXml}
+              sourceUrl={selectedSourceUrl}
             />
           </div>
         </DialogContent>

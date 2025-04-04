@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { XMLMapping } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,30 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Info, Plus, Save, X } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Info, Plus, Save, X, Zap, AlertCircle, Check, Wand2, Code, Eye, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface XMLMappingFormProps {
   initialMapping?: XMLMapping;
   onSave: (mapping: XMLMapping) => void;
   onCancel?: () => void;
+  onAnalyze?: (url: string) => Promise<any>;
+  sourceUrl?: string;
   sampleXML?: string;
 }
 
-export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: XMLMappingFormProps) => {
+export const XMLMappingForm = ({ 
+  initialMapping, 
+  onSave, 
+  onCancel, 
+  onAnalyze,
+  sourceUrl,
+  sampleXML 
+}: XMLMappingFormProps) => {
   const [mapping, setMapping] = useState<XMLMapping>(
     initialMapping || {
       rootElement: '',
@@ -33,6 +46,16 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
   const [activeTab, setActiveTab] = useState('basic');
   const [transformField, setTransformField] = useState<string>('');
   const [transformType, setTransformType] = useState<string>('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [xmlAnalysis, setXmlAnalysis] = useState<any>(null);
+  const [showSampleData, setShowSampleData] = useState(false);
+
+  // Автоматично аналізувати XML, якщо є URL і функція аналізу
+  useEffect(() => {
+    if (sourceUrl && onAnalyze && !initialMapping?.rootElement) {
+      handleAnalyzeXml();
+    }
+  }, [sourceUrl, onAnalyze]);
 
   const handleFieldMappingChange = (field: string, value: string) => {
     setMapping({
@@ -90,12 +113,67 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
     });
   };
 
+  const handleAnalyzeXml = async () => {
+    if (!sourceUrl || !onAnalyze) return;
+    
+    try {
+      setAnalyzing(true);
+      const result = await onAnalyze(sourceUrl);
+      
+      if (result.success) {
+        setXmlAnalysis(result);
+        setActiveTab('analysis');
+        toast({
+          title: "Аналіз завершено",
+          description: "XML файл проаналізовано успішно, знайдено структуру та рекомендації",
+        });
+      } else {
+        toast({
+          title: "Помилка аналізу",
+          description: result.errorMessage || "Не вдалося проаналізувати XML",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Помилка аналізу XML:", error);
+      toast({
+        title: "Помилка",
+        description: "Сталася помилка під час аналізу XML",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const applyMappingSuggestion = () => {
+    if (!xmlAnalysis || !xmlAnalysis.suggestions) return;
+    
+    const { schema } = xmlAnalysis.suggestions;
+    
+    setMapping({
+      ...mapping,
+      rootElement: schema.rootElement,
+      productElement: schema.productElement,
+      fieldMappings: {
+        ...schema.fieldMappings,
+      },
+    });
+    
+    setActiveTab('basic');
+    
+    toast({
+      title: "Мапінг застосовано",
+      description: "Рекомендований мапінг було успішно застосовано",
+    });
+  };
+
   const handleSave = () => {
     // Basic validation
     if (!mapping.rootElement || !mapping.productElement || !mapping.fieldMappings.name || !mapping.fieldMappings.price) {
       toast({
-        title: "Validation Error",
-        description: "Please fill all required fields (Root Element, Product Element, Name, and Price mappings)",
+        title: "Помилка валідації",
+        description: "Будь ласка, заповніть всі обов'язкові поля (Кореневий елемент, Елемент товару, Назва та Ціна)",
         variant: "destructive",
       });
       return;
@@ -105,17 +183,17 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
   };
 
   const fieldLabels: Record<string, string> = {
-    id: 'Product ID',
-    name: 'Product Name',
-    description: 'Description',
-    price: 'Price',
-    compareAtPrice: 'Compare-at Price',
-    images: 'Images',
-    category: 'Category',
-    categoryIdToName: 'Category ID to Name Mapping',
-    tags: 'Tags',
-    sku: 'SKU',
-    stock: 'Stock',
+    id: 'ID товару',
+    name: 'Назва товару',
+    description: 'Опис',
+    price: 'Ціна',
+    compareAtPrice: 'Стара ціна',
+    images: 'Зображення',
+    category: 'Категорія',
+    categoryIdToName: 'ID категорії',
+    tags: 'Теги',
+    sku: 'Артикул / SKU',
+    stock: 'Наявність',
   };
 
   const requiredFields = ['name', 'price'];
@@ -123,11 +201,169 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
   return (
     <div className="space-y-6 p-1">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-6">
-          <TabsTrigger value="basic">Basic Mapping</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced Fields</TabsTrigger>
-          <TabsTrigger value="transforms">Transformations</TabsTrigger>
+        <TabsList className="grid grid-cols-4 mb-6">
+          <TabsTrigger value="analysis">
+            <Zap className="h-4 w-4 mr-2" />
+            Аналіз XML
+          </TabsTrigger>
+          <TabsTrigger value="basic">
+            <Code className="h-4 w-4 mr-2" />
+            Основне мапінг
+          </TabsTrigger>
+          <TabsTrigger value="advanced">
+            <Eye className="h-4 w-4 mr-2" />
+            Додаткові поля
+          </TabsTrigger>
+          <TabsTrigger value="transforms">
+            <Wand2 className="h-4 w-4 mr-2" />
+            Трансформації
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analysis" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            {sourceUrl && onAnalyze && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>Аналіз XML структури</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={analyzing}
+                      onClick={handleAnalyzeXml}
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Аналізуємо...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="h-4 w-4 mr-2" />
+                          Аналізувати XML
+                        </>
+                      )}
+                    </Button>
+                  </CardTitle>
+                  <CardDescription>
+                    Автоматичний аналіз структури XML файлу для спрощення налаштування імпорту
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!xmlAnalysis ? (
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertTitle>Підказка</AlertTitle>
+                      <AlertDescription>
+                        Натисніть кнопку "Аналізувати XML", щоб автоматично проаналізувати структуру
+                        файлу та отримати рекомендації для мапінгу.
+                      </AlertDescription>
+                    </Alert>
+                  ) : xmlAnalysis.suggestions ? (
+                    <div className="space-y-4">
+                      <Alert variant="default" className="bg-primary/5 border-primary/20">
+                        <Check className="h-4 w-4 text-primary" />
+                        <AlertTitle>Аналіз успішний</AlertTitle>
+                        <AlertDescription>
+                          Знайдено {xmlAnalysis.suggestions.productCount} товарів та запропоновано схему мапінгу
+                          з рівнем впевненості {xmlAnalysis.suggestions.confidence}%.
+                        </AlertDescription>
+                      </Alert>
+                      
+                      <div className="bg-muted p-4 rounded-md">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-medium">Рекомендована схема:</h3>
+                          <Button onClick={applyMappingSuggestion} size="sm" variant="default">
+                            <Wand2 className="h-4 w-4 mr-2" />
+                            Застосувати
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Кореневий елемент</Label>
+                            <div className="font-mono text-sm bg-background p-2 rounded border mt-1">
+                              {xmlAnalysis.suggestions.schema.rootElement}
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Елемент товару</Label>
+                            <div className="font-mono text-sm bg-background p-2 rounded border mt-1">
+                              {xmlAnalysis.suggestions.schema.productElement}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-2 block">Знайдені поля</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {Object.entries(xmlAnalysis.suggestions.schema.fieldMappings).map(([fieldType, fieldName]) => (
+                              <div key={fieldType} className="flex items-center text-sm">
+                                <span className="font-medium mr-2">{fieldLabels[fieldType] || fieldType}:</span>
+                                <code className="bg-background py-0.5 px-1.5 rounded text-xs border">
+                                  {fieldName as string}
+                                </code>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium">Приклад даних:</h3>
+                          <Button 
+                            onClick={() => setShowSampleData(!showSampleData)} 
+                            variant="ghost" 
+                            size="sm"
+                          >
+                            {showSampleData ? 'Сховати' : 'Показати'}
+                          </Button>
+                        </div>
+                        
+                        {showSampleData && xmlAnalysis.suggestions.sampleData && (
+                          <div className="border rounded-md overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  {Object.keys(xmlAnalysis.suggestions.sampleData[0] || {}).map(field => (
+                                    <TableHead key={field}>
+                                      {fieldLabels[field] || field}
+                                    </TableHead>
+                                  ))}
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {xmlAnalysis.suggestions.sampleData.map((item: any, index: number) => (
+                                  <TableRow key={index}>
+                                    {Object.entries(item).map(([field, value]) => (
+                                      <TableCell key={field} className="truncate max-w-[200px]">
+                                        {value as string}
+                                      </TableCell>
+                                    ))}
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Не вдалося проаналізувати</AlertTitle>
+                      <AlertDescription>
+                        {xmlAnalysis.errorMessage || "Не вдалося знайти структуру товарів у XML файлі"}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="basic" className="space-y-6">
           <div className="grid grid-cols-1 gap-4">

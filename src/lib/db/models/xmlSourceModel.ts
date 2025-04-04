@@ -1,8 +1,7 @@
-
 import { query, queryOne } from '../config';
 import { XMLSource } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { parseXmlProducts, saveImportedProducts } from '../../importXml';
+import { parseXmlProducts, saveImportedProducts, analyzeXmlStructure } from '../../importXml';
 
 export class XMLSourceModel {
   // Отримати всі джерела XML
@@ -115,6 +114,49 @@ export class XMLSourceModel {
     } catch (error) {
       console.error('Помилка оновлення дати імпорту:', error);
       return false;
+    }
+  }
+  
+  // Аналізувати структуру XML для підказок мапінгу
+  static async analyzeXmlStructure(url: string): Promise<{ 
+    success: boolean; 
+    structure?: any;
+    suggestions?: any;
+    errorMessage?: string 
+  }> {
+    try {
+      console.log(`Завантажуємо XML з ${url} для аналізу`);
+      
+      // Завантажуємо XML
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP помилка: ${response.status}`);
+      }
+      
+      const xmlString = await response.text();
+      console.log(`XML завантажено успішно, розмір: ${xmlString.length} символів`);
+      
+      // Аналізуємо структуру XML
+      const analysisResult = await analyzeXmlStructure(xmlString);
+      
+      if (!analysisResult.success) {
+        return { 
+          success: false, 
+          errorMessage: `Помилка аналізу XML: ${analysisResult.error}` 
+        };
+      }
+      
+      return {
+        success: true,
+        structure: analysisResult.structure,
+        suggestions: analysisResult.suggestions
+      };
+    } catch (error) {
+      console.error('Помилка аналізу XML:', error);
+      return { 
+        success: false, 
+        errorMessage: `Помилка аналізу: ${error instanceof Error ? error.message : String(error)}` 
+      };
     }
   }
   
