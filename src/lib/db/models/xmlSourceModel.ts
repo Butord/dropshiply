@@ -151,9 +151,11 @@ export class XMLSourceModel {
         }
         
         console.log(`Розпізнано товарів: ${parseResult.products.length}`);
+        console.log('Приклад товару:', JSON.stringify(parseResult.products[0], null, 2));
         
         // Зберігаємо товари в базу даних
         const saveResult = await saveImportedProducts(parseResult.products);
+        console.log(`Результат збереження: ${JSON.stringify(saveResult)}`);
         
         // Оновлюємо дату останнього імпорту
         await this.updateLastImport(id);

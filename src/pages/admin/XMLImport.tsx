@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,22 +30,52 @@ import { mockXMLSources } from '@/lib/mockData';
 import XMLMappingForm from '@/components/admin/XMLMappingForm';
 import AnimatedSection from '@/components/ui/AnimatedSection';
 import { toast } from '@/components/ui/use-toast';
+import { XMLSourceModel } from '@/lib/db/models/xmlSourceModel';
+import { XMLSource } from '@/lib/types';
 
 const XMLImport = () => {
-  const [sources, setSources] = useState(mockXMLSources);
+  const [sources, setSources] = useState<XMLSource[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('sources');
   const [addSourceOpen, setAddSourceOpen] = useState(false);
   const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [newSourceName, setNewSourceName] = useState('');
   const [newSourceUrl, setNewSourceUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState<string | null>(null);
   
-  const handleCreateSource = () => {
+  // Завантаження джерел при відкритті сторінки
+  useEffect(() => {
+    const loadSources = async () => {
+      try {
+        setIsLoading(true);
+        // В браузері використовуємо мок-дані
+        if (typeof window !== 'undefined') {
+          setSources(mockXMLSources);
+        } else {
+          const sourcesData = await XMLSourceModel.getAll();
+          setSources(sourcesData);
+        }
+      } catch (error) {
+        console.error('Помилка завантаження джерел XML:', error);
+        toast({
+          title: "Помилка",
+          description: "Не вдалося завантажити джерела XML",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadSources();
+  }, []);
+  
+  const handleCreateSource = async () => {
     if (!newSourceName || !newSourceUrl) {
       toast({
-        title: "Validation Error",
-        description: "Please provide both a name and URL for the XML source",
+        title: "Помилка валідації",
+        description: "Будь ласка, вкажіть назву та URL для джерела XML",
         variant: "destructive",
       });
       return;
@@ -54,80 +83,183 @@ const XMLImport = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
       const newSource = {
-        id: Date.now().toString(),
         name: newSourceName,
         url: newSourceUrl,
         mappingSchema: {
-          rootElement: '',
-          productElement: '',
+          rootElement: 'yml_catalog',
+          productElement: 'offer',
           fieldMappings: {
-            name: '',
-            price: '',
+            name: 'name',
+            price: 'price',
+            description: 'description',
+            images: 'picture',
+            categoryIdToName: 'categoryId',
+            sku: 'vendorCode',
           },
         },
       };
       
-      setSources([...sources, newSource]);
-      setSelectedSource(newSource.id);
+      // В браузері імітуємо створення
+      let createdSource;
+      if (typeof window !== 'undefined') {
+        createdSource = {
+          id: Date.now().toString(),
+          ...newSource,
+        };
+        setSources([...sources, createdSource]);
+      } else {
+        createdSource = await XMLSourceModel.create(newSource);
+        setSources([...sources, createdSource]);
+      }
+      
+      setSelectedSource(createdSource.id);
       setAddSourceOpen(false);
       setMappingDialogOpen(true);
       setNewSourceName('');
       setNewSourceUrl('');
-      setIsLoading(false);
       
       toast({
-        title: "Source Created",
-        description: "XML source has been added successfully. Please configure the mapping.",
+        title: "Джерело створено",
+        description: "XML джерело було успішно додано. Налаштуйте схему мапінгу.",
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Помилка створення джерела XML:', error);
+      toast({
+        title: "Помилка",
+        description: "Не вдалося створити джерело XML",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleRemoveSource = (id: string) => {
-    setSources(sources.filter(source => source.id !== id));
-    toast({
-      title: "Source Removed",
-      description: "XML source has been removed successfully.",
-    });
+  const handleRemoveSource = async (id: string) => {
+    try {
+      // В браузері просто фільтруємо список
+      if (typeof window !== 'undefined') {
+        setSources(sources.filter(source => source.id !== id));
+      } else {
+        const success = await XMLSourceModel.delete(id);
+        if (success) {
+          setSources(sources.filter(source => source.id !== id));
+        } else {
+          throw new Error("Не вдалося видалити джерело");
+        }
+      }
+      
+      toast({
+        title: "Джерело видалено",
+        description: "XML джерело було успішно видалено.",
+      });
+    } catch (error) {
+      console.error('Помилка видалення джерела XML:', error);
+      toast({
+        title: "Помилка",
+        description: "Не вдалося видалити джерело XML",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleImportNow = (id: string) => {
+  const handleImportNow = async (id: string) => {
     const source = sources.find(s => s.id === id);
     
     if (!source) return;
     
+    setImportLoading(id);
+    
     toast({
-      title: "Import Started",
-      description: `Starting import from ${source.name}...`,
+      title: "Імпорт розпочато",
+      description: `Починаємо імпорт з ${source.name}...`,
     });
     
-    // You would implement the actual import logic here
-    setTimeout(() => {
+    try {
+      // В браузері імітуємо імпорт з затримкою
+      if (typeof window !== 'undefined') {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        toast({
+          title: "Імпорт завершено",
+          description: `Успішно імпортовано товари з ${source.name}.`,
+        });
+        
+        // Оновлюємо дату останнього імпорту
+        const updatedSources = sources.map(s => 
+          s.id === id 
+            ? { ...s, lastImport: new Date().toISOString() }
+            : s
+        );
+        setSources(updatedSources);
+      } else {
+        // Реальний імпорт через модель
+        const result = await XMLSourceModel.importProductsFromXml(id);
+        
+        if (result.success) {
+          toast({
+            title: "Імпорт завершено",
+            description: `Успішно імпортовано ${result.importedCount} товарів з ${source.name}.`,
+          });
+          
+          // Оновлюємо список джерел, щоб відобразити нову дату імпорту
+          const updatedSources = await XMLSourceModel.getAll();
+          setSources(updatedSources);
+        } else {
+          throw new Error(result.errorMessage || "Помилка під час імпорту");
+        }
+      }
+    } catch (error) {
+      console.error('Помилка імпорту товарів:', error);
       toast({
-        title: "Import Completed",
-        description: `Successfully imported products from ${source.name}.`,
+        title: "Помилка імпорту",
+        description: error instanceof Error ? error.message : "Не вдалося імпортувати товари",
+        variant: "destructive",
       });
-    }, 3000);
+    } finally {
+      setImportLoading(null);
+    }
   };
   
-  const handleSaveMapping = (mapping: any) => {
+  const handleSaveMapping = async (mapping: any) => {
     if (!selectedSource) return;
     
-    setSources(
-      sources.map(source => 
-        source.id === selectedSource 
-          ? { ...source, mappingSchema: mapping }
-          : source
-      )
-    );
-    
-    setMappingDialogOpen(false);
-    toast({
-      title: "Mapping Saved",
-      description: "XML mapping configuration has been saved successfully.",
-    });
+    try {
+      // В браузері просто оновлюємо стан
+      if (typeof window !== 'undefined') {
+        setSources(
+          sources.map(source => 
+            source.id === selectedSource 
+              ? { ...source, mappingSchema: mapping }
+              : source
+          )
+        );
+      } else {
+        // Реальне оновлення через модель
+        const success = await XMLSourceModel.update(selectedSource, { mappingSchema: mapping });
+        if (success) {
+          // Оновлюємо список джерел
+          const updatedSources = await XMLSourceModel.getAll();
+          setSources(updatedSources);
+        } else {
+          throw new Error("Не вдалося оновити схему мапінгу");
+        }
+      }
+      
+      setMappingDialogOpen(false);
+      toast({
+        title: "Схему збережено",
+        description: "Конфігурацію XML мапінгу було успішно збережено.",
+      });
+    } catch (error) {
+      console.error('Помилка збереження схеми мапінгу:', error);
+      toast({
+        title: "Помилка",
+        description: "Не вдалося зберегти схему мапінгу",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleEditMapping = (id: string) => {
@@ -284,9 +416,19 @@ const XMLImport = () => {
                                       variant="outline" 
                                       size="sm"
                                       onClick={() => handleImportNow(source.id)}
+                                      disabled={importLoading === source.id}
                                     >
-                                      <Upload className="h-4 w-4 mr-1" />
-                                      Import
+                                      {importLoading === source.id ? (
+                                        <>
+                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                          Importing...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Upload className="h-4 w-4 mr-1" />
+                                          Import
+                                        </>
+                                      )}
                                     </Button>
                                     <Button 
                                       variant="outline" 

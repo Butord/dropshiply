@@ -5,81 +5,115 @@ import { v4 as uuidv4 } from 'uuid';
 export class ProductModel {
   // Отримати всі товари
   static async getAll(): Promise<Product[]> {
-    const result = await query<any>(`
-      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.productId
-      LEFT JOIN product_tags pt ON p.id = pt.productId
-      GROUP BY p.id
-    `);
+    try {
+      console.log('Отримуємо список всіх товарів');
+      const result = await query<any>(`
+        SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
+        FROM products p
+        LEFT JOIN product_images pi ON p.id = pi.productId
+        LEFT JOIN product_tags pt ON p.id = pt.productId
+        GROUP BY p.id
+      `);
 
-    return result.map(product => ({
-      ...product,
-      images: product.images_concat ? product.images_concat.split(',') : [],
-      tags: product.tags_concat ? product.tags_concat.split(',') : [],
-      createdAt: new Date(product.createdAt).toISOString(),
-      updatedAt: new Date(product.updatedAt).toISOString()
-    }));
+      return result.map(product => ({
+        ...product,
+        images: product.images_concat ? product.images_concat.split(',') : [],
+        tags: product.tags_concat ? product.tags_concat.split(',') : [],
+        createdAt: new Date(product.createdAt).toISOString(),
+        updatedAt: new Date(product.updatedAt).toISOString()
+      }));
+    } catch (error) {
+      console.error('Помилка отримання списку товарів:', error);
+      return [];
+    }
   }
 
   // Отримати товар за id
   static async getById(id: string): Promise<Product | null> {
-    const result = await queryOne<any>(`
-      SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
-      FROM products p
-      LEFT JOIN product_images pi ON p.id = pi.productId
-      LEFT JOIN product_tags pt ON p.id = pt.productId
-      WHERE p.id = ?
-      GROUP BY p.id
-    `, [id]);
+    try {
+      const result = await queryOne<any>(`
+        SELECT p.*, GROUP_CONCAT(DISTINCT pi.url) as images_concat, GROUP_CONCAT(DISTINCT pt.tag) as tags_concat
+        FROM products p
+        LEFT JOIN product_images pi ON p.id = pi.productId
+        LEFT JOIN product_tags pt ON p.id = pt.productId
+        WHERE p.id = ?
+        GROUP BY p.id
+      `, [id]);
 
-    if (!result) return null;
+      if (!result) return null;
 
-    return {
-      ...result,
-      images: result.images_concat ? result.images_concat.split(',') : [],
-      tags: result.tags_concat ? result.tags_concat.split(',') : [],
-      createdAt: new Date(result.createdAt).toISOString(),
-      updatedAt: new Date(result.updatedAt).toISOString()
-    };
+      return {
+        ...result,
+        images: result.images_concat ? result.images_concat.split(',') : [],
+        tags: result.tags_concat ? result.tags_concat.split(',') : [],
+        createdAt: new Date(result.createdAt).toISOString(),
+        updatedAt: new Date(result.updatedAt).toISOString()
+      };
+    } catch (error) {
+      console.error(`Помилка отримання товару з ID ${id}:`, error);
+      return null;
+    }
   }
 
   // Створити новий товар
   static async create(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
-    const id = uuidv4();
-    const now = new Date().toISOString();
+    try {
+      console.log('Створення нового товару:', product.name);
+      
+      // Якщо типи даних не відповідають очікуваним, конвертуємо їх
+      const id = product.id || uuidv4();
+      const now = new Date().toISOString();
+      const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
+      const compareAtPrice = product.compareAtPrice ? 
+        (typeof product.compareAtPrice === 'string' ? parseFloat(product.compareAtPrice) : product.compareAtPrice) : 
+        null;
+      const stock = typeof product.stock === 'string' ? parseInt(product.stock, 10) : product.stock;
 
-    await query(`
-      INSERT INTO products (id, name, description, price, compareAtPrice, category, sku, stock)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [id, product.name, product.description, product.price, product.compareAtPrice, product.category, product.sku, product.stock]);
+      // Починаємо транзакцію
+      await query('START TRANSACTION');
 
-    // Додаємо зображення
-    if (product.images && product.images.length > 0) {
-      for (let i = 0; i < product.images.length; i++) {
-        await query(`
-          INSERT INTO product_images (id, productId, url, sortOrder)
-          VALUES (?, ?, ?, ?)
-        `, [uuidv4(), id, product.images[i], i]);
+      // Вставляємо основні дані товару
+      await query(`
+        INSERT INTO products (id, name, description, price, compareAtPrice, category, sku, stock, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      `, [id, product.name, product.description, price, compareAtPrice, product.category, product.sku, stock]);
+
+      // Додаємо зображення
+      if (product.images && product.images.length > 0) {
+        for (let i = 0; i < product.images.length; i++) {
+          await query(`
+            INSERT INTO product_images (id, productId, url, sortOrder)
+            VALUES (?, ?, ?, ?)
+          `, [uuidv4(), id, product.images[i], i]);
+        }
       }
-    }
 
-    // Додаємо теги
-    if (product.tags && product.tags.length > 0) {
-      for (const tag of product.tags) {
-        await query(`
-          INSERT INTO product_tags (productId, tag)
-          VALUES (?, ?)
-        `, [id, tag]);
+      // Додаємо теги
+      if (product.tags && product.tags.length > 0) {
+        for (const tag of product.tags) {
+          await query(`
+            INSERT INTO product_tags (productId, tag)
+            VALUES (?, ?)
+          `, [id, tag]);
+        }
       }
-    }
 
-    return {
-      id,
-      ...product,
-      createdAt: now,
-      updatedAt: now
-    };
+      // Підтверджуємо транзакцію
+      await query('COMMIT');
+      console.log(`Товар "${product.name}" успішно створено з ID: ${id}`);
+
+      return {
+        id,
+        ...product,
+        createdAt: now,
+        updatedAt: now
+      };
+    } catch (error) {
+      // Відміняємо транзакцію у випадку помилки
+      await query('ROLLBACK');
+      console.error('Помилка створення товару:', error);
+      throw error;
+    }
   }
 
   // Оновити товар

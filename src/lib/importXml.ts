@@ -14,6 +14,7 @@ export const parseXmlProducts = async (
   const errors: string[] = [];
   
   try {
+    console.log('Початок парсингу XML');
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     
@@ -24,19 +25,38 @@ export const parseXmlProducts = async (
       return { success: false, products, errors };
     }
     
-    // Знаходимо елемент, що містить список товарів (shop для yml_catalog)
-    const shopElement = rootElement.getElementsByTagName('shop')[0];
-    if (!shopElement) {
-      errors.push(`Елемент "shop" не знайдено в XML`);
-      return { success: false, products, errors };
+    console.log(`Кореневий елемент "${mapping.rootElement}" знайдено`);
+    
+    // Для yml_catalog шукаємо елемент shop
+    let shopElement = rootElement;
+    if (mapping.rootElement === 'yml_catalog') {
+      shopElement = rootElement.getElementsByTagName('shop')[0];
+      if (!shopElement) {
+        errors.push(`Елемент "shop" не знайдено в XML`);
+        return { success: false, products, errors };
+      }
+      console.log('Елемент "shop" знайдено');
     }
     
     // Знаходимо всі елементи товарів
     const productElements = shopElement.getElementsByTagName(mapping.productElement);
     
+    console.log(`Знайдено елементів товарів: ${productElements.length}`);
+    
     if (productElements.length === 0) {
       errors.push(`Елементи товарів "${mapping.productElement}" не знайдені в XML`);
       return { success: false, products, errors };
+    }
+    
+    // Отримуємо категорії, якщо вони є
+    const categoriesMap = new Map<string, string>();
+    const categoryElements = shopElement.getElementsByTagName('category');
+    for (let i = 0; i < categoryElements.length; i++) {
+      const categoryEl = categoryElements[i];
+      const categoryId = categoryEl.getAttribute('id');
+      if (categoryId) {
+        categoriesMap.set(categoryId, categoryEl.textContent || '');
+      }
     }
     
     // Обробка кожного товару
@@ -44,12 +64,15 @@ export const parseXmlProducts = async (
       const productElement = productElements[i];
       
       try {
-        const product = mapElementToProduct(productElement, mapping);
+        const product = mapElementToProduct(productElement, mapping, categoriesMap);
         products.push(product);
       } catch (error) {
+        console.error(`Помилка обробки товару #${i + 1}:`, error);
         errors.push(`Помилка обробки товару #${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
+    
+    console.log(`Успішно розпізнано товарів: ${products.length}`);
     
     return { 
       success: products.length > 0, 
@@ -57,6 +80,7 @@ export const parseXmlProducts = async (
       errors 
     };
   } catch (error) {
+    console.error('Помилка парсингу XML:', error);
     errors.push(`Помилка парсингу XML: ${error instanceof Error ? error.message : String(error)}`);
     return { success: false, products, errors };
   }
@@ -65,7 +89,11 @@ export const parseXmlProducts = async (
 /**
  * Перетворення XML елемента в об'єкт товару згідно зі схемою мапінгу
  */
-const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => {
+const mapElementToProduct = (
+  element: Element, 
+  mapping: XMLMapping, 
+  categoriesMap: Map<string, string> = new Map()
+): Product => {
   // Базові поля товару
   const now = new Date().toISOString();
   const product: Product = {
@@ -145,13 +173,13 @@ const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => 
   // Категорія
   if (mapping.fieldMappings.category) {
     product.category = getElementTextContent(element, mapping.fieldMappings.category) || '';
-    
-    // Якщо категорія вказана як ID, то можна спробувати знайти її назву в окремому елементі
-    // Перевіряємо наявність поля categoryIdToName, щоб уникнути помилки TypeScript
-    if (product.category && mapping.fieldMappings.categoryIdToName) {
-      const categoryId = product.category;
-      // Тут можна було б реалізувати пошук назви категорії за ID
-      // Але для простоти використовуємо як категорію її ID
+  }
+  
+  // Якщо категорія вказана як ID, то спробуємо знайти її назву
+  if (!product.category && mapping.fieldMappings.categoryIdToName) {
+    const categoryIdText = getElementTextContent(element, mapping.fieldMappings.categoryIdToName);
+    if (categoryIdText && categoriesMap.has(categoryIdText)) {
+      product.category = categoriesMap.get(categoryIdText) || '';
     }
   }
   
@@ -172,6 +200,12 @@ const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => 
   // SKU або артикул
   if (mapping.fieldMappings.sku) {
     product.sku = getElementTextContent(element, mapping.fieldMappings.sku) || '';
+  } else {
+    // Спробуємо знайти vendor code як SKU
+    const vendorCode = getElementTextContent(element, 'vendorCode');
+    if (vendorCode) {
+      product.sku = vendorCode;
+    }
   }
   
   // Наявність на складі
@@ -183,12 +217,12 @@ const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => 
         product.stock = 0;
       }
     }
-    
-    // Якщо є атрибут доступності (available)
-    const availableAttr = element.getAttribute('available');
-    if (availableAttr !== null) {
-      product.stock = availableAttr === 'true' ? 10 : 0; // За замовчуванням 10 одиниць, якщо доступно
-    }
+  }
+  
+  // Якщо є атрибут доступності (available)
+  const availableAttr = element.getAttribute('available');
+  if (availableAttr !== null) {
+    product.stock = availableAttr === 'true' ? 10 : 0; // За замовчуванням 10 одиниць, якщо доступно
   }
   
   // Ціна порівняння (стара ціна)
@@ -203,9 +237,11 @@ const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => 
 };
 
 /**
- * Отримання текстового вмісту елемента за шляхом
+ * Отримання текстового вмісту елемента за тегом
  */
 const getElementTextContent = (element: Element, path: string): string | null => {
+  if (!path) return null;
+  
   // Розділяємо шлях, якщо він містить підпапки (наприклад: "details/name")
   const parts = path.split('/');
   
@@ -272,14 +308,35 @@ export const saveImportedProducts = async (products: Product[]): Promise<{ succe
   const errors: string[] = [];
   let savedCount = 0;
   
+  console.log(`Початок збереження ${products.length} товарів`);
+  
   for (const product of products) {
     try {
-      await ProductModel.create(product);
-      savedCount++;
+      // Перевіряємо, чи товар з таким ID або SKU вже існує
+      const existingProduct = await ProductModel.getById(product.id);
+      
+      if (existingProduct) {
+        // Оновлюємо існуючий товар
+        const updated = await ProductModel.update(product.id, product);
+        if (updated) {
+          savedCount++;
+          console.log(`Оновлено товар: ${product.name}`);
+        } else {
+          errors.push(`Помилка оновлення товару "${product.name}"`);
+        }
+      } else {
+        // Створюємо новий товар
+        await ProductModel.create(product);
+        savedCount++;
+        console.log(`Створено товар: ${product.name}`);
+      }
     } catch (error) {
+      console.error(`Помилка збереження товару "${product.name}":`, error);
       errors.push(`Помилка збереження товару "${product.name}": ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+  
+  console.log(`Збережено товарів: ${savedCount}, помилок: ${errors.length}`);
   
   return {
     success: savedCount > 0,
