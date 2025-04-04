@@ -43,6 +43,7 @@ export interface XMLMapping {
     compareAtPrice?: string;
     images?: string;
     category?: string;
+    categoryIdToName?: string; // Added this field to fix the TypeScript error
     tags?: string;
     sku?: string;
     stock?: string;

@@ -147,6 +147,7 @@ const mapElementToProduct = (element: Element, mapping: XMLMapping): Product => 
     product.category = getElementTextContent(element, mapping.fieldMappings.category) || '';
     
     // Якщо категорія вказана як ID, то можна спробувати знайти її назву в окремому елементі
+    // Перевіряємо наявність поля categoryIdToName, щоб уникнути помилки TypeScript
     if (product.category && mapping.fieldMappings.categoryIdToName) {
       const categoryId = product.category;
       // Тут можна було б реалізувати пошук назви категорії за ID

@@ -2,6 +2,7 @@
 import { query, queryOne } from '../config';
 import { XMLSource } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { parseXmlProducts, saveImportedProducts } from '../../importXml';
 
 export class XMLSourceModel {
   // Отримати всі джерела XML
@@ -126,17 +127,50 @@ export class XMLSourceModel {
         return { success: false, importedCount: 0, errorMessage: 'Джерело XML не знайдено' };
       }
       
-      // Тут буде логіка завантаження XML та імпорту товарів
-      // На даний момент це заглушка для демонстрації
-      console.log(`Імпортуємо товари з ${source.url} з налаштуваннями:`, source.mappingSchema);
+      // Отримуємо XML з URL
+      console.log(`Завантажуємо XML з ${source.url}`);
       
-      // Оновлюємо дату останнього імпорту
-      await this.updateLastImport(id);
-      
-      return { 
-        success: true, 
-        importedCount: 5 // Заглушка, реальна кількість імпортованих товарів
-      };
+      try {
+        const response = await fetch(source.url);
+        if (!response.ok) {
+          throw new Error(`HTTP помилка: ${response.status}`);
+        }
+        
+        const xmlString = await response.text();
+        console.log(`XML завантажено успішно, розмір: ${xmlString.length} символів`);
+        
+        // Парсимо XML та отримуємо товари
+        const parseResult = await parseXmlProducts(xmlString, source.mappingSchema);
+        
+        if (!parseResult.success) {
+          return { 
+            success: false, 
+            importedCount: 0, 
+            errorMessage: `Помилка парсингу XML: ${parseResult.errors.join('; ')}` 
+          };
+        }
+        
+        console.log(`Розпізнано товарів: ${parseResult.products.length}`);
+        
+        // Зберігаємо товари в базу даних
+        const saveResult = await saveImportedProducts(parseResult.products);
+        
+        // Оновлюємо дату останнього імпорту
+        await this.updateLastImport(id);
+        
+        return { 
+          success: saveResult.success, 
+          importedCount: saveResult.saved,
+          errorMessage: saveResult.errors.length > 0 ? saveResult.errors.join('; ') : undefined
+        };
+      } catch (error) {
+        console.error('Помилка завантаження XML:', error);
+        return { 
+          success: false, 
+          importedCount: 0, 
+          errorMessage: `Помилка завантаження XML: ${error instanceof Error ? error.message : String(error)}` 
+        };
+      }
     } catch (error) {
       console.error('Помилка імпорту товарів з XML:', error);
       return { 

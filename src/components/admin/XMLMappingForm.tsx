@@ -112,6 +112,7 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
     compareAtPrice: 'Compare-at Price',
     images: 'Images',
     category: 'Category',
+    categoryIdToName: 'Category ID to Name Mapping',
     tags: 'Tags',
     sku: 'SKU',
     stock: 'Stock',
@@ -237,6 +238,20 @@ export const XMLMappingForm = ({ initialMapping, onSave, onCancel, sampleXML }: 
                 placeholder="e.g. category, product_type"
                 className="mt-1"
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="categoryIdToName">Category ID to Name Mapping</Label>
+              <Input
+                id="categoryIdToName"
+                value={mapping.fieldMappings.categoryIdToName || ''}
+                onChange={(e) => handleFieldMappingChange('categoryIdToName', e.target.value)}
+                placeholder="e.g. categories/category"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Use this when your XML has category IDs that need to be mapped to category names
+              </p>
             </div>
             
             <div>
