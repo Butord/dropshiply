@@ -61,9 +61,11 @@ export class ProductModel {
     try {
       console.log('Створення нового товару:', product.name);
       
-      // Якщо типи даних не відповідають очікуваним, конвертуємо їх
-      const id = uuidv4(); // Generate a new ID instead of using product.id
+      // Генеруємо новий ID
+      const id = uuidv4();
       const now = new Date().toISOString();
+      
+      // Якщо типи даних не відповідають очікуваним, конвертуємо їх
       const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
       const compareAtPrice = product.compareAtPrice ? 
         (typeof product.compareAtPrice === 'string' ? parseFloat(product.compareAtPrice) : product.compareAtPrice) : 
@@ -74,6 +76,7 @@ export class ProductModel {
       await query('START TRANSACTION');
 
       try {
+        console.log(`Вставка основних даних товару ${product.name} з ID ${id}`);
         // Вставляємо основні дані товару
         await query(`
           INSERT INTO products (id, name, description, price, compareAtPrice, category, sku, stock, createdAt, updatedAt)
@@ -82,6 +85,7 @@ export class ProductModel {
 
         // Додаємо зображення
         if (product.images && product.images.length > 0) {
+          console.log(`Додавання ${product.images.length} зображень для товару ${id}`);
           for (let i = 0; i < product.images.length; i++) {
             await query(`
               INSERT INTO product_images (id, productId, url, sortOrder)
@@ -92,6 +96,7 @@ export class ProductModel {
 
         // Додаємо теги
         if (product.tags && product.tags.length > 0) {
+          console.log(`Додавання ${product.tags.length} тегів для товару ${id}`);
           for (const tag of product.tags) {
             await query(`
               INSERT INTO product_tags (productId, tag)

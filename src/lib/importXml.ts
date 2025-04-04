@@ -385,7 +385,7 @@ export const parseXmlProducts = async (
   const errors: string[] = [];
   
   try {
-    console.log('Початок парсингу XML');
+    console.log('Початок парсингу XML з схемою:', JSON.stringify(mapping));
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     
@@ -434,12 +434,11 @@ export const parseXmlProducts = async (
     // Для yml_catalog шукаємо елемент shop
     let shopElement = rootElement;
     if (mapping.rootElement === 'yml_catalog' || rootElement.tagName === 'yml_catalog') {
-      shopElement = rootElement.getElementsByTagName('shop')[0];
-      if (!shopElement) {
-        errors.push(`Елемент "shop" не знайдено в XML`);
-        return { success: false, products, errors };
+      const shopElements = rootElement.getElementsByTagName('shop');
+      if (shopElements.length > 0) {
+        shopElement = shopElements[0];
+        console.log('Елемен�� "shop" знайдено');
       }
-      console.log('Елемент "shop" знайдено');
     }
     
     // Знаходимо всі елементи товарів
@@ -513,13 +512,6 @@ const mapElementToProduct = (
     createdAt: now,
     updatedAt: now
   };
-  
-  // ID товару (якщо є в мапінгу або береться з атрибуту id)
-  if (mapping.fieldMappings.id) {
-    product.id = getElementTextContent(element, mapping.fieldMappings.id) || element.getAttribute('id') || uuidv4();
-  } else if (element.getAttribute('id')) {
-    product.id = element.getAttribute('id') || uuidv4();
-  }
   
   // Назва товару (обов'язкове поле)
   product.name = getElementTextContent(element, mapping.fieldMappings.name) || '';
@@ -716,25 +708,15 @@ export const saveImportedProducts = async (products: Product[]): Promise<{ succe
   
   for (const product of products) {
     try {
-      // Перевіряємо, чи товар з таким ID або SKU вже існує
-      const existingProduct = await ProductModel.getById(product.id);
+      console.log(`Спроба зберегти товар: ${product.name}`);
       
-      if (existingProduct) {
-        // Оновлюємо існуючий товар
-        const updated = await ProductModel.update(product.id, product);
-        if (updated) {
-          savedCount++;
-          console.log(`Оновлено товар: ${product.name}`);
-        } else {
-          errors.push(`Помилка оновлення товару "${product.name}"`);
-        }
-      } else {
-        // Створюємо новий товар без ID, бо він генерується автоматично
-        const { id, createdAt, updatedAt, ...productData } = product;
-        await ProductModel.create(productData);
-        savedCount++;
-        console.log(`Створено товар: ${product.name}`);
-      }
+      // Create a new product without using the existing ID
+      const { id: unusedId, createdAt, updatedAt, ...productData } = product;
+      
+      // Створюємо новий товар
+      await ProductModel.create(productData);
+      savedCount++;
+      console.log(`Створено товар: ${product.name}`);
     } catch (error) {
       console.error(`Помилка збереження товару "${product.name}":`, error);
       errors.push(`Помилка збереження товару "${product.name}": ${error instanceof Error ? error.message : String(error)}`);

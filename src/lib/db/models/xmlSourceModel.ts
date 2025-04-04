@@ -8,6 +8,7 @@ export class XMLSourceModel {
   // Отримати всі джерела XML
   static async getAll(): Promise<XMLSource[]> {
     try {
+      console.log('Отримання списку XML джерел');
       const sources = await query<XMLSource>('SELECT * FROM xml_sources');
       
       return sources.map(source => ({
@@ -26,6 +27,7 @@ export class XMLSourceModel {
   // Отримати джерело XML за id
   static async getById(id: string): Promise<XMLSource | null> {
     try {
+      console.log(`Отримання XML джерела з ID: ${id}`);
       const source = await queryOne<XMLSource>('SELECT * FROM xml_sources WHERE id = ?', [id]);
       
       if (!source) return null;
@@ -47,6 +49,7 @@ export class XMLSourceModel {
   static async create(source: Omit<XMLSource, 'id'>): Promise<XMLSource> {
     try {
       const id = uuidv4();
+      console.log(`Створення нового XML джерела: ${source.name} з ID: ${id}`);
       
       // Переконаємося, що mappingSchema є строкою для збереження в базі даних
       const mappingSchemaStr = typeof source.mappingSchema === 'object' 
@@ -79,6 +82,7 @@ export class XMLSourceModel {
   // Оновити джерело XML
   static async update(id: string, source: Partial<XMLSource>): Promise<boolean> {
     try {
+      console.log(`Оновлення XML джерела з ID: ${id}`, source);
       const updateFields = [];
       const updateValues = [];
 
@@ -100,13 +104,15 @@ export class XMLSourceModel {
       }
       if (source.mappingSchema !== undefined) {
         updateFields.push('mappingSchema = ?');
-        updateValues.push(typeof source.mappingSchema === 'object' 
+        const schemaValue = typeof source.mappingSchema === 'object' 
           ? JSON.stringify(source.mappingSchema) 
-          : source.mappingSchema);
+          : source.mappingSchema;
+        updateValues.push(schemaValue);
+        console.log('Оновлення схеми мапінгу:', schemaValue);
       }
 
       if (updateFields.length > 0) {
-        console.log(`Оновлення джерела XML з ID ${id}:`, updateFields);
+        console.log(`Виконання SQL запиту на оновлення XML джерела ${id}:`, updateFields.join(', '));
         await query(
           `UPDATE xml_sources SET ${updateFields.join(', ')} WHERE id = ?`,
           [...updateValues, id]
@@ -190,8 +196,10 @@ export class XMLSourceModel {
   static async importProductsFromXml(id: string): Promise<{ success: boolean; importedCount: number; errorMessage?: string }> {
     try {
       // Отримуємо джерело за ID
+      console.log(`Початок імпорту з джерела: ${id}`);
       const source = await this.getById(id);
       if (!source) {
+        console.error('Джерело XML не знайдено з ID:', id);
         return { success: false, importedCount: 0, errorMessage: 'Джерело XML не знайдено' };
       }
       
@@ -201,7 +209,9 @@ export class XMLSourceModel {
       try {
         const response = await fetch(source.url);
         if (!response.ok) {
-          throw new Error(`HTTP помилка: ${response.status}`);
+          const errorMsg = `HTTP помилка: ${response.status}`;
+          console.error(errorMsg);
+          throw new Error(errorMsg);
         }
         
         const xmlString = await response.text();
@@ -211,21 +221,26 @@ export class XMLSourceModel {
         if (!source.mappingSchema || 
             !source.mappingSchema.productElement || 
             !source.mappingSchema.fieldMappings) {
+          const errorMsg = 'Відсутня схема мапінгу для імпорту';
+          console.error(errorMsg, source.mappingSchema);
           return { 
             success: false, 
             importedCount: 0, 
-            errorMessage: 'Відсутня схема мапінгу для імпорту' 
+            errorMessage: errorMsg
           };
         }
         
         // Парсимо XML та отримуємо товари
+        console.log('Початок парсингу XML з наступною схемою мапінгу:', JSON.stringify(source.mappingSchema));
         const parseResult = await parseXmlProducts(xmlString, source.mappingSchema);
         
         if (!parseResult.success) {
+          const errorMsg = `Помилка парсингу XML: ${parseResult.errors.join('; ')}`;
+          console.error(errorMsg);
           return { 
             success: false, 
             importedCount: 0, 
-            errorMessage: `Помилка парсингу XML: ${parseResult.errors.join('; ')}` 
+            errorMessage: errorMsg
           };
         }
         
