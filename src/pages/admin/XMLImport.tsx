@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -53,7 +52,7 @@ const XMLImport = () => {
       try {
         setIsLoading(true);
         // В браузері використовуємо мок-дані
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
           setSources(mockXMLSources);
         } else {
           const sourcesData = await XMLSourceModel.getAll();
@@ -102,15 +101,21 @@ const XMLImport = () => {
       
       // В браузері імітуємо створення
       let createdSource;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         createdSource = {
           id: Date.now().toString(),
           ...newSource,
         };
         setSources([...sources, createdSource]);
       } else {
-        createdSource = await XMLSourceModel.create(newSource);
-        setSources([...sources, createdSource]);
+        try {
+          console.log('Створення нового джерела XML:', newSource);
+          createdSource = await XMLSourceModel.create(newSource);
+          setSources([...sources, createdSource]);
+        } catch (error) {
+          console.error('Помилка при створенні джерела XML:', error);
+          throw error;
+        }
       }
       
       setSelectedSource(createdSource.id);
@@ -138,7 +143,7 @@ const XMLImport = () => {
   const handleRemoveSource = async (id: string) => {
     try {
       // В браузері просто фільтруємо список
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         setSources(sources.filter(source => source.id !== id));
       } else {
         const success = await XMLSourceModel.delete(id);
@@ -177,7 +182,7 @@ const XMLImport = () => {
     
     try {
       // В браузері імітуємо імпорт з затримкою
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         await new Promise(resolve => setTimeout(resolve, 3000));
         
         toast({
@@ -194,7 +199,9 @@ const XMLImport = () => {
         setSources(updatedSources);
       } else {
         // Реальний імпорт через модель
+        console.log(`Початок імпорту з джерела: ${id}`);
         const result = await XMLSourceModel.importProductsFromXml(id);
+        console.log('Результат імпорту:', result);
         
         if (result.success) {
           toast({
@@ -225,8 +232,10 @@ const XMLImport = () => {
     if (!selectedSource) return;
     
     try {
+      console.log('Збереження схеми мапінгу для джерела:', selectedSource, mapping);
+      
       // В браузері просто оновлюємо стан
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         setSources(
           sources.map(source => 
             source.id === selectedSource 

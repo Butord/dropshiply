@@ -1,3 +1,4 @@
+
 import { query, queryOne } from '../config';
 import { Product } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -72,45 +73,50 @@ export class ProductModel {
       // Починаємо транзакцію
       await query('START TRANSACTION');
 
-      // Вставляємо основні дані товару
-      await query(`
-        INSERT INTO products (id, name, description, price, compareAtPrice, category, sku, stock, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-      `, [id, product.name, product.description, price, compareAtPrice, product.category, product.sku, stock]);
+      try {
+        // Вставляємо основні дані товару
+        await query(`
+          INSERT INTO products (id, name, description, price, compareAtPrice, category, sku, stock, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        `, [id, product.name, product.description, price, compareAtPrice, product.category, product.sku, stock]);
 
-      // Додаємо зображення
-      if (product.images && product.images.length > 0) {
-        for (let i = 0; i < product.images.length; i++) {
-          await query(`
-            INSERT INTO product_images (id, productId, url, sortOrder)
-            VALUES (?, ?, ?, ?)
-          `, [uuidv4(), id, product.images[i], i]);
+        // Додаємо зображення
+        if (product.images && product.images.length > 0) {
+          for (let i = 0; i < product.images.length; i++) {
+            await query(`
+              INSERT INTO product_images (id, productId, url, sortOrder)
+              VALUES (?, ?, ?, ?)
+            `, [uuidv4(), id, product.images[i], i]);
+          }
         }
-      }
 
-      // Додаємо теги
-      if (product.tags && product.tags.length > 0) {
-        for (const tag of product.tags) {
-          await query(`
-            INSERT INTO product_tags (productId, tag)
-            VALUES (?, ?)
-          `, [id, tag]);
+        // Додаємо теги
+        if (product.tags && product.tags.length > 0) {
+          for (const tag of product.tags) {
+            await query(`
+              INSERT INTO product_tags (productId, tag)
+              VALUES (?, ?)
+            `, [id, tag]);
+          }
         }
+
+        // Підтверджуємо транзакцію
+        await query('COMMIT');
+        console.log(`Товар "${product.name}" успішно створено з ID: ${id}`);
+
+        return {
+          id,
+          ...product,
+          createdAt: now,
+          updatedAt: now
+        };
+      } catch (error) {
+        // Відміняємо транзакцію у випадку помилки
+        await query('ROLLBACK');
+        console.error('Помилка створення товару (відкочуємо транзакцію):', error);
+        throw error;
       }
-
-      // Підтверджуємо транзакцію
-      await query('COMMIT');
-      console.log(`Товар "${product.name}" успішно створено з ID: ${id}`);
-
-      return {
-        id,
-        ...product,
-        createdAt: now,
-        updatedAt: now
-      };
     } catch (error) {
-      // Відміняємо транзакцію у випадку помилки
-      await query('ROLLBACK');
       console.error('Помилка створення товару:', error);
       throw error;
     }

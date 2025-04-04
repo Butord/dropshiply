@@ -324,7 +324,7 @@ const generateMappingSuggestions = (rootElement: Element, productElements: any[]
  * Отримання прикладу даних для візуалізації
  */
 const getSampleData = (rootElement: Element, productInfo: any, mappingSchema: any): any => {
-  // Знаходимо елемент�� продуктів
+  // Знаходимо елемент продуктів
   const pathParts = productInfo.path.split('/');
   let currentElement = rootElement;
   
@@ -389,18 +389,51 @@ export const parseXmlProducts = async (
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     
-    // Знаходимо кореневий елемент
-    const rootElement = xmlDoc.getElementsByTagName(mapping.rootElement)[0];
-    if (!rootElement) {
-      errors.push(`Кореневий елемент "${mapping.rootElement}" не знайдено в XML`);
+    // Перевіряємо, чи є помилки парсингу
+    const parseError = xmlDoc.getElementsByTagName("parsererror");
+    if (parseError.length > 0) {
+      errors.push(`Помилка парсингу XML: ${parseError[0].textContent}`);
       return { success: false, products, errors };
+    }
+    
+    // Знаходимо кореневий елемент
+    let rootElement: Element;
+    
+    if (mapping.rootElement.includes('/')) {
+      // Якщо шлях містить /, розбиваємо його
+      const pathParts = mapping.rootElement.split('/');
+      let currentElement: Element | null = xmlDoc.documentElement;
+      
+      for (let i = 1; i < pathParts.length; i++) {
+        if (!currentElement) break;
+        const elements = currentElement.getElementsByTagName(pathParts[i]);
+        if (elements.length === 0) {
+          errors.push(`Елемент "${pathParts[i]}" не знайдено в шляху "${mapping.rootElement}"`);
+          return { success: false, products, errors };
+        }
+        currentElement = elements[0];
+      }
+      
+      if (!currentElement) {
+        errors.push(`Не вдалося знайти кореневий елемент за шляхом "${mapping.rootElement}"`);
+        return { success: false, products, errors };
+      }
+      
+      rootElement = currentElement;
+    } else {
+      // Звичайний випадок - просто беремо елемент за іменем
+      rootElement = xmlDoc.getElementsByTagName(mapping.rootElement)[0];
+      if (!rootElement) {
+        errors.push(`Кореневий елемент "${mapping.rootElement}" не знайдено в XML`);
+        return { success: false, products, errors };
+      }
     }
     
     console.log(`Кореневий елемент "${mapping.rootElement}" знайдено`);
     
     // Для yml_catalog шукаємо елемент shop
     let shopElement = rootElement;
-    if (mapping.rootElement === 'yml_catalog') {
+    if (mapping.rootElement === 'yml_catalog' || rootElement.tagName === 'yml_catalog') {
       shopElement = rootElement.getElementsByTagName('shop')[0];
       if (!shopElement) {
         errors.push(`Елемент "shop" не знайдено в XML`);
@@ -696,8 +729,9 @@ export const saveImportedProducts = async (products: Product[]): Promise<{ succe
           errors.push(`Помилка оновлення товару "${product.name}"`);
         }
       } else {
-        // Створюємо новий товар
-        await ProductModel.create(product);
+        // Створюємо новий товар без ID, бо він генерується автоматично
+        const { id, createdAt, updatedAt, ...productData } = product;
+        await ProductModel.create(productData);
         savedCount++;
         console.log(`Створено товар: ${product.name}`);
       }

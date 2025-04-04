@@ -1,3 +1,4 @@
+
 import { query, queryOne } from '../config';
 import { XMLSource } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,51 +7,73 @@ import { parseXmlProducts, saveImportedProducts, analyzeXmlStructure } from '../
 export class XMLSourceModel {
   // Отримати всі джерела XML
   static async getAll(): Promise<XMLSource[]> {
-    const sources = await query<XMLSource>('SELECT * FROM xml_sources');
-    
-    return sources.map(source => ({
-      ...source,
-      mappingSchema: typeof source.mappingSchema === 'string' 
-        ? JSON.parse(source.mappingSchema) 
-        : source.mappingSchema,
-      lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
-    }));
+    try {
+      const sources = await query<XMLSource>('SELECT * FROM xml_sources');
+      
+      return sources.map(source => ({
+        ...source,
+        mappingSchema: typeof source.mappingSchema === 'string' 
+          ? JSON.parse(source.mappingSchema) 
+          : source.mappingSchema,
+        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
+      }));
+    } catch (error) {
+      console.error('Помилка отримання джерел XML:', error);
+      return [];
+    }
   }
 
   // Отримати джерело XML за id
   static async getById(id: string): Promise<XMLSource | null> {
-    const source = await queryOne<XMLSource>('SELECT * FROM xml_sources WHERE id = ?', [id]);
-    
-    if (!source) return null;
-    
-    return {
-      ...source,
-      mappingSchema: typeof source.mappingSchema === 'string' 
-        ? JSON.parse(source.mappingSchema) 
-        : source.mappingSchema,
-      lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
-    };
+    try {
+      const source = await queryOne<XMLSource>('SELECT * FROM xml_sources WHERE id = ?', [id]);
+      
+      if (!source) return null;
+      
+      return {
+        ...source,
+        mappingSchema: typeof source.mappingSchema === 'string' 
+          ? JSON.parse(source.mappingSchema) 
+          : source.mappingSchema,
+        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
+      };
+    } catch (error) {
+      console.error(`Помилка отримання джерела XML з ID ${id}:`, error);
+      return null;
+    }
   }
 
   // Створити нове джерело XML
   static async create(source: Omit<XMLSource, 'id'>): Promise<XMLSource> {
-    const id = uuidv4();
-    
-    await query(`
-      INSERT INTO xml_sources (id, name, url, updateSchedule, mappingSchema)
-      VALUES (?, ?, ?, ?, ?)
-    `, [
-      id, 
-      source.name, 
-      source.url, 
-      source.updateSchedule || null, 
-      JSON.stringify(source.mappingSchema)
-    ]);
+    try {
+      const id = uuidv4();
+      
+      // Переконаємося, що mappingSchema є строкою для збереження в базі даних
+      const mappingSchemaStr = typeof source.mappingSchema === 'object' 
+        ? JSON.stringify(source.mappingSchema) 
+        : source.mappingSchema;
+      
+      await query(`
+        INSERT INTO xml_sources (id, name, url, updateSchedule, mappingSchema)
+        VALUES (?, ?, ?, ?, ?)
+      `, [
+        id, 
+        source.name, 
+        source.url, 
+        source.updateSchedule || null, 
+        mappingSchemaStr
+      ]);
+      
+      console.log(`Створено нове джерело XML: ${source.name} з ID: ${id}`);
 
-    return {
-      id,
-      ...source
-    };
+      return {
+        id,
+        ...source
+      };
+    } catch (error) {
+      console.error('Помилка створення джерела XML:', error);
+      throw error;
+    }
   }
 
   // Оновити джерело XML
@@ -77,10 +100,13 @@ export class XMLSourceModel {
       }
       if (source.mappingSchema !== undefined) {
         updateFields.push('mappingSchema = ?');
-        updateValues.push(JSON.stringify(source.mappingSchema));
+        updateValues.push(typeof source.mappingSchema === 'object' 
+          ? JSON.stringify(source.mappingSchema) 
+          : source.mappingSchema);
       }
 
       if (updateFields.length > 0) {
+        console.log(`Оновлення джерела XML з ID ${id}:`, updateFields);
         await query(
           `UPDATE xml_sources SET ${updateFields.join(', ')} WHERE id = ?`,
           [...updateValues, id]
@@ -181,6 +207,17 @@ export class XMLSourceModel {
         const xmlString = await response.text();
         console.log(`XML завантажено успішно, розмір: ${xmlString.length} символів`);
         
+        // Перевіримо, чи є схема мапінгу
+        if (!source.mappingSchema || 
+            !source.mappingSchema.productElement || 
+            !source.mappingSchema.fieldMappings) {
+          return { 
+            success: false, 
+            importedCount: 0, 
+            errorMessage: 'Відсутня схема мапінгу для імпорту' 
+          };
+        }
+        
         // Парсимо XML та отримуємо товари
         const parseResult = await parseXmlProducts(xmlString, source.mappingSchema);
         
@@ -193,7 +230,9 @@ export class XMLSourceModel {
         }
         
         console.log(`Розпізнано товарів: ${parseResult.products.length}`);
-        console.log('Приклад товару:', JSON.stringify(parseResult.products[0], null, 2));
+        if (parseResult.products.length > 0) {
+          console.log('Приклад товару:', JSON.stringify(parseResult.products[0], null, 2));
+        }
         
         // Зберігаємо товари в базу даних
         const saveResult = await saveImportedProducts(parseResult.products);
