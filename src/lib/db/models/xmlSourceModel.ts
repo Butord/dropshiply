@@ -116,4 +116,34 @@ export class XMLSourceModel {
       return false;
     }
   }
+  
+  // Імпортувати товари з XML
+  static async importProductsFromXml(id: string): Promise<{ success: boolean; importedCount: number; errorMessage?: string }> {
+    try {
+      // Отримуємо джерело за ID
+      const source = await this.getById(id);
+      if (!source) {
+        return { success: false, importedCount: 0, errorMessage: 'Джерело XML не знайдено' };
+      }
+      
+      // Тут буде логіка завантаження XML та імпорту товарів
+      // На даний момент це заглушка для демонстрації
+      console.log(`Імпортуємо товари з ${source.url} з налаштуваннями:`, source.mappingSchema);
+      
+      // Оновлюємо дату останнього імпорту
+      await this.updateLastImport(id);
+      
+      return { 
+        success: true, 
+        importedCount: 5 // Заглушка, реальна кількість імпортованих товарів
+      };
+    } catch (error) {
+      console.error('Помилка імпорту товарів з XML:', error);
+      return { 
+        success: false, 
+        importedCount: 0, 
+        errorMessage: `Помилка імпорту: ${error instanceof Error ? error.message : String(error)}` 
+      };
+    }
+  }
 }
