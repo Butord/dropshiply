@@ -13,7 +13,6 @@ import {
   Calendar, 
   Check, 
   Clock, 
-  Cog, 
   FileText, 
   LineChart, 
   Loader2, 
@@ -34,6 +33,31 @@ import { toast } from '@/components/ui/use-toast';
 import { XMLSourceModel } from '@/lib/db/models/xmlSourceModel';
 import { XMLSource } from '@/lib/types';
 
+// Компонент для елементів навігації
+const NavItem = ({ 
+  href, 
+  icon, 
+  label, 
+  active = false 
+}: { 
+  href: string; 
+  icon: React.ReactNode; 
+  label: string; 
+  active?: boolean;
+}) => (
+  <Link
+    to={href}
+    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-muted/50 ${
+      active ? 'bg-muted font-medium text-primary' : 'text-muted-foreground'
+    }`}
+  >
+    <span className={active ? 'text-primary' : 'text-muted-foreground'}>
+      {icon}
+    </span>
+    {label}
+  </Link>
+);
+
 const XMLImport = () => {
   const [sources, setSources] = useState<XMLSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,30 +72,30 @@ const XMLImport = () => {
   
   // Завантаження джерел при відкритті сторінки
   useEffect(() => {
-    const loadSources = async () => {
-      try {
-        setIsLoading(true);
-        // В браузері використовуємо мок-дані
-        if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-          setSources(mockXMLSources);
-        } else {
-          const sourcesData = await XMLSourceModel.getAll();
-          setSources(sourcesData);
-        }
-      } catch (error) {
-        console.error('Помилка завантаження джерел XML:', error);
-        toast({
-          title: "Помилка",
-          description: "Не вдалося завантажити джерела XML",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     loadSources();
   }, []);
+  
+  const loadSources = async () => {
+    try {
+      setIsLoading(true);
+      // В браузері використовуємо мок-дані
+      if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        setSources(mockXMLSources);
+      } else {
+        const sourcesData = await XMLSourceModel.getAll();
+        setSources(sourcesData);
+      }
+    } catch (error) {
+      console.error('Помилка завантаження джерел XML:', error);
+      toast({
+        title: "Помилка",
+        description: "Не вдалося завантажити джерела XML",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleCreateSource = async () => {
     if (!newSourceName || !newSourceUrl) {
@@ -702,76 +726,23 @@ const XMLImport = () => {
         </main>
       </div>
       
-      {/* Mapping Dialog */}
+      {/* Dialog for mapping configuration */}
       <Dialog open={mappingDialogOpen} onOpenChange={setMappingDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>XML Mapping Configuration</DialogTitle>
+            <DialogTitle>Configure XML Mapping</DialogTitle>
           </DialogHeader>
-          <div className="mt-2">
-            <XMLMappingForm
-              initialMapping={selectedMapping}
-              onSave={handleSaveMapping}
-              onCancel={() => setMappingDialogOpen(false)}
-              onAnalyze={handleAnalyzeXml}
-              sourceUrl={selectedSourceUrl}
-            />
-          </div>
+          <XMLMappingForm
+            initialMapping={selectedMapping}
+            onSave={handleSaveMapping}
+            onCancel={() => setMappingDialogOpen(false)}
+            onAnalyze={handleAnalyzeXml}
+            sourceUrl={selectedSourceUrl}
+          />
         </DialogContent>
       </Dialog>
     </div>
   );
-};
-
-interface NavItemProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
-
-const NavItem = ({ href, icon, label, active }: NavItemProps) => {
-  return (
-    <Link
-      to={href}
-      className={`flex items-center h-10 rounded-md px-3 text-sm font-medium ${
-        active
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:bg-muted transition-colors'
-      }`}
-    >
-      <span className="mr-2">{icon}</span>
-      {label}
-    </Link>
-  );
-};
-
-// Helper function to format cron expression into human-readable text
-const formatCron = (cronExpression: string): string => {
-  // Very basic cron formatting
-  const parts = cronExpression.split(' ');
-  if (parts.length !== 5) return cronExpression;
-  
-  if (parts[0] === '0' && parts[1] === '0' && parts[2] === '*') {
-    return 'Daily at midnight';
-  }
-  
-  if (parts[0] === '0' && parts[1] === '0' && parts[2] === '*/2') {
-    return 'Every 2 days at midnight';
-  }
-  
-  return cronExpression;
-};
-
-// Helper function to get next run time based on cron
-const getNextRunTime = (cronExpression: string): string => {
-  // This is just a placeholder - in a real app you'd calculate this based on the cron expression
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-  
-  return tomorrow.toLocaleString();
 };
 
 export default XMLImport;

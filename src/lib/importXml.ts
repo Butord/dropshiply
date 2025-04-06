@@ -437,7 +437,7 @@ export const parseXmlProducts = async (
       const shopElements = rootElement.getElementsByTagName('shop');
       if (shopElements.length > 0) {
         shopElement = shopElements[0];
-        console.log('Елемен�� "shop" знайдено');
+        console.log('Елемент "shop" знайдено');
       }
     }
     
@@ -710,16 +710,21 @@ export const saveImportedProducts = async (products: Product[]): Promise<{ succe
     try {
       console.log(`Спроба зберегти товар: ${product.name}`);
       
-      // Create a new product without using the existing ID
+      // Підготовка даних для збереження (без id, createdAt, updatedAt)
       const { id: unusedId, createdAt, updatedAt, ...productData } = product;
       
-      // Створюємо новий товар
-      await ProductModel.create(productData);
-      savedCount++;
-      console.log(`Створено товар: ${product.name}`);
+      try {
+        // Створюємо новий товар
+        await ProductModel.create(productData);
+        savedCount++;
+        console.log(`Створено товар: ${product.name}`);
+      } catch (error) {
+        console.error(`Помилка збереження продукту в базу даних: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(`Помилка збереження товару "${product.name}": ${error instanceof Error ? error.message : String(error)}`);
+      }
     } catch (error) {
-      console.error(`Помилка збереження товару "${product.name}":`, error);
-      errors.push(`Помилка збереження товару "${product.name}": ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`Помилка обробки това��у "${product.name}":`, error);
+      errors.push(`Помилка обробки товару "${product.name}": ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   

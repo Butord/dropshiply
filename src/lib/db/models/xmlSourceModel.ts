@@ -16,7 +16,7 @@ export class XMLSourceModel {
         mappingSchema: typeof source.mappingSchema === 'string' 
           ? JSON.parse(source.mappingSchema) 
           : source.mappingSchema,
-        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
+        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : null
       }));
     } catch (error) {
       console.error('Помилка отримання джерел XML:', error);
@@ -37,7 +37,7 @@ export class XMLSourceModel {
         mappingSchema: typeof source.mappingSchema === 'string' 
           ? JSON.parse(source.mappingSchema) 
           : source.mappingSchema,
-        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : undefined
+        lastImport: source.lastImport ? new Date(source.lastImport).toISOString() : null
       };
     } catch (error) {
       console.error(`Помилка отримання джерела XML з ID ${id}:`, error);
@@ -54,11 +54,11 @@ export class XMLSourceModel {
       // Переконаємося, що mappingSchema є строкою для збереження в базі даних
       const mappingSchemaStr = typeof source.mappingSchema === 'object' 
         ? JSON.stringify(source.mappingSchema) 
-        : source.mappingSchema;
+        : source.mappingSchema || '{}';
       
       await query(`
-        INSERT INTO xml_sources (id, name, url, updateSchedule, mappingSchema)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO xml_sources (id, name, url, updateSchedule, mappingSchema, lastImport)
+        VALUES (?, ?, ?, ?, ?, NULL)
       `, [
         id, 
         source.name, 
@@ -106,7 +106,7 @@ export class XMLSourceModel {
         updateFields.push('mappingSchema = ?');
         const schemaValue = typeof source.mappingSchema === 'object' 
           ? JSON.stringify(source.mappingSchema) 
-          : source.mappingSchema;
+          : source.mappingSchema || '{}';
         updateValues.push(schemaValue);
         console.log('Оновлення схеми мапінгу:', schemaValue);
       }
@@ -203,6 +203,22 @@ export class XMLSourceModel {
         return { success: false, importedCount: 0, errorMessage: 'Джерело XML не знайдено' };
       }
       
+      console.log('Отримано джерело:', JSON.stringify(source, null, 2));
+      console.log('Схема мапінгу:', JSON.stringify(source.mappingSchema, null, 2));
+      
+      // Перевіримо, чи є схема мапінгу
+      if (!source.mappingSchema || 
+          !source.mappingSchema.productElement || 
+          !source.mappingSchema.fieldMappings) {
+        const errorMsg = 'Відсутня схема мапінгу для імпорту';
+        console.error(errorMsg, source.mappingSchema);
+        return { 
+          success: false, 
+          importedCount: 0, 
+          errorMessage: errorMsg
+        };
+      }
+      
       // Отримуємо XML з URL
       console.log(`Завантажуємо XML з ${source.url}`);
       
@@ -216,19 +232,6 @@ export class XMLSourceModel {
         
         const xmlString = await response.text();
         console.log(`XML завантажено успішно, розмір: ${xmlString.length} символів`);
-        
-        // Перевіримо, чи є схема мапінгу
-        if (!source.mappingSchema || 
-            !source.mappingSchema.productElement || 
-            !source.mappingSchema.fieldMappings) {
-          const errorMsg = 'Відсутня схема мапінгу для імпорту';
-          console.error(errorMsg, source.mappingSchema);
-          return { 
-            success: false, 
-            importedCount: 0, 
-            errorMessage: errorMsg
-          };
-        }
         
         // Парсимо XML та отримуємо товари
         console.log('Початок парсингу XML з наступною схемою мапінгу:', JSON.stringify(source.mappingSchema));

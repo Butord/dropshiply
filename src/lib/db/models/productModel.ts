@@ -112,6 +112,9 @@ export class ProductModel {
         return {
           id,
           ...product,
+          price,
+          compareAtPrice,
+          stock,
           createdAt: now,
           updatedAt: now
         };
