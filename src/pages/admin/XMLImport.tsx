@@ -32,8 +32,8 @@ import AnimatedSection from '@/components/ui/AnimatedSection';
 import { toast } from '@/components/ui/use-toast';
 import { XMLSourceModel } from '@/lib/db/models/xmlSourceModel';
 import { XMLSource } from '@/lib/types';
+import { formatCron, getNextRunTime } from '@/lib/utils/cronUtils';
 
-// Компонент для елементів навігації
 const NavItem = ({ 
   href, 
   icon, 
@@ -70,7 +70,6 @@ const XMLImport = () => {
   const [importLoading, setImportLoading] = useState<string | null>(null);
   const [analyzingXml, setAnalyzingXml] = useState(false);
   
-  // Завантаження джерел при відкритті сторінки
   useEffect(() => {
     loadSources();
   }, []);
@@ -78,7 +77,6 @@ const XMLImport = () => {
   const loadSources = async () => {
     try {
       setIsLoading(true);
-      // В браузері використовуємо мок-дані
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         setSources(mockXMLSources);
       } else {
@@ -123,7 +121,6 @@ const XMLImport = () => {
         },
       };
       
-      // В браузері імітуємо створення
       let createdSource;
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         createdSource = {
@@ -166,7 +163,6 @@ const XMLImport = () => {
   
   const handleRemoveSource = async (id: string) => {
     try {
-      // В браузері просто фільтруємо список
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         setSources(sources.filter(source => source.id !== id));
       } else {
@@ -205,7 +201,6 @@ const XMLImport = () => {
     });
     
     try {
-      // В браузері імітуємо імпорт з затримкою
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -214,7 +209,6 @@ const XMLImport = () => {
           description: `Успішно імпортовано товари з ${source.name}.`,
         });
         
-        // Оновлюємо дату останнього імпорту
         const updatedSources = sources.map(s => 
           s.id === id 
             ? { ...s, lastImport: new Date().toISOString() }
@@ -222,7 +216,6 @@ const XMLImport = () => {
         );
         setSources(updatedSources);
       } else {
-        // Реальний імпорт через модель
         console.log(`Початок імпорту з джерела: ${id}`);
         const result = await XMLSourceModel.importProductsFromXml(id);
         console.log('Результат імпорту:', result);
@@ -233,7 +226,6 @@ const XMLImport = () => {
             description: `Успішно імпортовано ${result.importedCount} товарів з ${source.name}.`,
           });
           
-          // Оновлюємо список джерел, щоб відобразити нову дату імпорту
           const updatedSources = await XMLSourceModel.getAll();
           setSources(updatedSources);
         } else {
@@ -258,7 +250,6 @@ const XMLImport = () => {
     try {
       console.log('Збереження схеми мапінгу для джерела:', selectedSource, mapping);
       
-      // В браузері просто оновлюємо стан
       if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         setSources(
           sources.map(source => 
@@ -268,10 +259,8 @@ const XMLImport = () => {
           )
         );
       } else {
-        // Реальне оновлення через модель
         const success = await XMLSourceModel.update(selectedSource, { mappingSchema: mapping });
         if (success) {
-          // Оновлюємо список джерел
           const updatedSources = await XMLSourceModel.getAll();
           setSources(updatedSources);
         } else {
@@ -303,7 +292,6 @@ const XMLImport = () => {
     setAnalyzingXml(true);
     try {
       if (typeof window !== 'undefined') {
-        // Імітація аналізу в браузері (мок)
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         return {
@@ -353,7 +341,6 @@ const XMLImport = () => {
           }
         };
       } else {
-        // Реальний аналіз через модель
         return await XMLSourceModel.analyzeXmlStructure(url);
       }
     } catch (error) {
@@ -377,7 +364,6 @@ const XMLImport = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar */}
       <div className="w-64 border-r border-border flex flex-col">
         <div className="p-4 border-b border-border">
           <Link to="/" className="text-xl font-semibold tracking-tight">
@@ -408,7 +394,6 @@ const XMLImport = () => {
         </div>
       </div>
       
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 border-b border-border flex items-center px-6">
           <h1 className="text-xl font-semibold">XML Import Management</h1>
@@ -726,7 +711,6 @@ const XMLImport = () => {
         </main>
       </div>
       
-      {/* Dialog for mapping configuration */}
       <Dialog open={mappingDialogOpen} onOpenChange={setMappingDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
