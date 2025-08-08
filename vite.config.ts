@@ -14,6 +14,8 @@ export default defineConfig(({ mode }) => ({
       allow: ['..', '.']
     }
   },
+  // Use relative asset paths so the app works from any subdirectory on shared hosting
+  base: './',
   plugins: [
     react(),
     mode === 'development' &&
